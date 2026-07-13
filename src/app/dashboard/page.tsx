@@ -24,9 +24,20 @@ export default function DashboardPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (activePeriodeId) {
-      fetchDashboardData(activePeriodeId);
+    async function init() {
+      let pId = activePeriodeId;
+      if (!pId) {
+        // Fetch active periode
+        const { data } = await supabase.from("master_periode").select("id").eq("status_aktif", true).single();
+        if (data) pId = data.id;
+      }
+      if (pId) {
+        fetchDashboardData(pId);
+      } else {
+        setLoading(false); // No active period found
+      }
     }
+    init();
   }, [activePeriodeId]);
 
   async function fetchDashboardData(periodeId: string) {

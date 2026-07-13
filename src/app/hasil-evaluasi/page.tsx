@@ -24,9 +24,20 @@ function HasilEvaluasiContent() {
   }, []);
 
   useEffect(() => {
-    if (activePeriodeId) {
-      fetchHasilEvaluasi(activePeriodeId);
+    async function init() {
+      let pId = activePeriodeId;
+      if (!pId) {
+        // Fetch active periode
+        const { data } = await supabase.from("master_periode").select("id").eq("status_aktif", true).single();
+        if (data) pId = data.id;
+      }
+      if (pId) {
+        fetchHasilEvaluasi(pId);
+      } else {
+        setLoading(false); // No active period found
+      }
     }
+    init();
   }, [activePeriodeId]);
 
   async function fetchKecamatan() {
