@@ -38,8 +38,9 @@ export function AuthWrapper({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   // Daftar rute yang tidak perlu login
-  const publicRoutes = ["/login"];
+  const publicRoutes = ["/login", "/"];
   const isPublicRoute = publicRoutes.includes(pathname);
+  const isLoginPage = pathname === "/login";
 
   useEffect(() => {
     let mounted = true;
@@ -79,7 +80,8 @@ export function AuthWrapper({ children }: { children: React.ReactNode }) {
           }
           setLoading(false);
 
-          if (isPublicRoute) {
+          // Hanya redirect ke dashboard jika di halaman /login (bukan landing page /)
+          if (isLoginPage) {
             router.replace("/dashboard");
           }
         }
@@ -134,10 +136,12 @@ export function AuthWrapper({ children }: { children: React.ReactNode }) {
   // Layout utama aplikasi (Backend)
   return (
     <AuthContext.Provider value={{ user, loading, signOut }}>
-      <Sidebar />
-      <div className="main-content" style={{ flex: 1 }}>
-        <Header />
-        <main className="main-body">{children}</main>
+      <div style={{ display: "flex", minHeight: "100vh" }}>
+        <Sidebar />
+        <div className="main-content" style={{ flex: 1 }}>
+          <Header />
+          <main className="main-body">{children}</main>
+        </div>
       </div>
     </AuthContext.Provider>
   );
