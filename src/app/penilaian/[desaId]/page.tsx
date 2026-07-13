@@ -301,8 +301,8 @@ export default function PenilaianFormPage() {
                     sumber="umum" 
                     value={answers[`umum_${ind.id}`]?.skor ?? 0}
                     catatan={answers[`umum_${ind.id}`]?.catatan ?? ""}
-                    onChangeSkor={(val) => handleSkorChange("umum", ind.id, val)}
-                    onChangeCatatan={(val) => handleCatatanChange("umum", ind.id, val)}
+                    onChangeSkor={(val: number) => handleSkorChange("umum", ind.id, val)}
+                    onChangeCatatan={(val: string) => handleCatatanChange("umum", ind.id, val)}
                     isLast={i === indUmumFilter.length - 1 && (!isOpenSID || indikatorOpenSID.length === 0)}
                   />
                 ))}
@@ -321,8 +321,8 @@ export default function PenilaianFormPage() {
                     sumber="opensid" 
                     value={answers[`opensid_${ind.id}`]?.skor ?? 0}
                     catatan={answers[`opensid_${ind.id}`]?.catatan ?? ""}
-                    onChangeSkor={(val) => handleSkorChange("opensid", ind.id, val)}
-                    onChangeCatatan={(val) => handleCatatanChange("opensid", ind.id, val)}
+                    onChangeSkor={(val: number) => handleSkorChange("opensid", ind.id, val)}
+                    onChangeCatatan={(val: string) => handleCatatanChange("opensid", ind.id, val)}
                     isLast={i === indikatorOpenSID.length - 1}
                   />
                 ))}
