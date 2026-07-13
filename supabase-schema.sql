@@ -167,11 +167,31 @@ create type role_user_enum as enum ('super_admin', 'admin_kecamatan', 'operator_
 create table users_app (
     id uuid primary key references auth.users(id) on delete cascade,
     nama varchar(150) not null,
+    email varchar(150) not null unique,
     role role_user_enum default 'viewer'::role_user_enum not null,
     desa_id uuid references desa(id) on delete set null,
     kecamatan_id uuid references kecamatan(id) on delete set null,
     created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
+
+-- Trigger untuk sinkronisasi otomatis dari auth.users ke users_app saat SignUp
+create or replace function public.handle_new_user()
+returns trigger as $$
+begin
+  insert into public.users_app (id, nama, email, role)
+  values (
+    new.id, 
+    coalesce(new.raw_user_meta_data->>'nama', split_part(new.email, '@', 1)), 
+    new.email, 
+    'viewer'
+  );
+  return new;
+end;
+$$ language plpgsql security definer;
+
+create or replace trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure public.handle_new_user();
 
 -- ==========================================
 -- ROW LEVEL SECURITY (RLS) & POLICIES (Supabase)
