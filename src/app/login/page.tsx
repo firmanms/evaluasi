@@ -12,8 +12,8 @@ export default function LoginPage() {
   const [error, setError] = useState("");
 
   const [formData, setFormData] = useState({
-    email: "",
-    password: ""
+    email: "admin@diskominfo.bandungkab.go.id",
+    password: "AdminMonev123!"
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -34,7 +34,7 @@ export default function LoginPage() {
 
     } catch (err: any) {
       console.error("Login Error:", err);
-      setError(err.message || "Terjadi kesalahan saat masuk. Periksa kembali email dan kata sandi Anda.");
+      setError("Email atau kata sandi salah. Jika ini pertama kali, jalankan SQL Script Super Admin terlebih dahulu.");
     } finally {
       setLoading(false);
     }
@@ -74,7 +74,6 @@ export default function LoginPage() {
           <div className="form-group">
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <label className="form-label" style={{ marginBottom: 0 }}>Kata Sandi</label>
-              <a href="#" style={{ fontSize: 13, color: "var(--primary)", textDecoration: "none" }}>Lupa sandi?</a>
             </div>
             <input
               type="password"
@@ -91,13 +90,6 @@ export default function LoginPage() {
             {loading ? <Loader2 className="animate-spin" size={20} /> : "Masuk"}
           </button>
         </form>
-
-        <div style={{ textAlign: "center", marginTop: 24, fontSize: 14, color: "var(--muted-foreground)" }}>
-          Belum punya akun?{" "}
-          <Link href="/register" style={{ color: "var(--primary)", fontWeight: 600, textDecoration: "none" }}>
-            Daftar sekarang
-          </Link>
-        </div>
       </div>
     </div>
   );

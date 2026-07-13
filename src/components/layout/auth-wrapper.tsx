@@ -38,7 +38,7 @@ export function AuthWrapper({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   // Daftar rute yang tidak perlu login
-  const publicRoutes = ["/login", "/register"];
+  const publicRoutes = ["/login"];
   const isPublicRoute = publicRoutes.includes(pathname);
 
   useEffect(() => {
