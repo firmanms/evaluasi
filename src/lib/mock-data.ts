@@ -109,39 +109,39 @@ export const aspekData: MasterAspek[] = [
 // ========== INDIKATOR UMUM ==========
 export const indikatorData: MasterIndikator[] = [
   // Ketersediaan Layanan (aspek-1)
-  { id: "ind-01", kode: "KL.01", nama_indikator: "Website dapat diakses (HTTP 200)", aspek_id: "aspek-1", bobot: 30, deskripsi: "Website desa dapat diakses dan menampilkan halaman utama tanpa error", aktif: true },
-  { id: "ind-02", kode: "KL.02", nama_indikator: "HTTPS aktif dan valid", aspek_id: "aspek-1", bobot: 25, deskripsi: "Sertifikat SSL terpasang dan valid", aktif: true },
-  { id: "ind-03", kode: "KL.03", nama_indikator: "Response time < 3 detik", aspek_id: "aspek-1", bobot: 20, deskripsi: "Halaman utama termuat dalam waktu kurang dari 3 detik", aktif: true },
-  { id: "ind-04", kode: "KL.04", nama_indikator: "Tidak ada error halaman (404/500)", aspek_id: "aspek-1", bobot: 15, deskripsi: "Tidak ditemukan broken link atau error server pada navigasi utama", aktif: true },
-  { id: "ind-05", kode: "KL.05", nama_indikator: "Tampilan responsif (mobile-friendly)", aspek_id: "aspek-1", bobot: 10, deskripsi: "Website tampil baik di perangkat mobile", aktif: true },
+  { id: "ind-01", kode: "KL.01", nama_indikator: "Website dapat diakses (HTTP 200)", aspek_id: "aspek-1", bobot: 30, deskripsi: "Website desa dapat diakses dan menampilkan halaman utama tanpa error", aktif: true, tipe_jawaban: "angka" },
+  { id: "ind-02", kode: "KL.02", nama_indikator: "HTTPS aktif dan valid", aspek_id: "aspek-1", bobot: 25, deskripsi: "Sertifikat SSL terpasang dan valid", aktif: true, tipe_jawaban: "angka" },
+  { id: "ind-03", kode: "KL.03", nama_indikator: "Response time < 3 detik", aspek_id: "aspek-1", bobot: 20, deskripsi: "Halaman utama termuat dalam waktu kurang dari 3 detik", aktif: true, tipe_jawaban: "angka" },
+  { id: "ind-04", kode: "KL.04", nama_indikator: "Tidak ada error halaman (404/500)", aspek_id: "aspek-1", bobot: 15, deskripsi: "Tidak ditemukan broken link atau error server pada navigasi utama", aktif: true, tipe_jawaban: "angka" },
+  { id: "ind-05", kode: "KL.05", nama_indikator: "Tampilan responsif (mobile-friendly)", aspek_id: "aspek-1", bobot: 10, deskripsi: "Website tampil baik di perangkat mobile", aktif: true, tipe_jawaban: "angka" },
 
   // Konten & Informasi Publik (aspek-2)
-  { id: "ind-06", kode: "KI.01", nama_indikator: "Profil desa lengkap (visi misi, sejarah, geografi)", aspek_id: "aspek-2", bobot: 15, deskripsi: "Halaman profil desa terisi lengkap", aktif: true },
-  { id: "ind-07", kode: "KI.02", nama_indikator: "Struktur organisasi pemerintah desa", aspek_id: "aspek-2", bobot: 10, deskripsi: "SOTK desa ditampilkan dengan foto dan jabatan", aktif: true },
-  { id: "ind-08", kode: "KI.03", nama_indikator: "Berita/artikel terbaru (update 30 hari terakhir)", aspek_id: "aspek-2", bobot: 20, deskripsi: "Minimal 1 berita/artikel diterbitkan dalam 30 hari terakhir", aktif: true },
-  { id: "ind-09", kode: "KI.04", nama_indikator: "Informasi layanan publik (persyaratan surat, dll)", aspek_id: "aspek-2", bobot: 15, deskripsi: "Informasi tentang layanan administrasi tersedia", aktif: true },
-  { id: "ind-10", kode: "KI.05", nama_indikator: "Transparansi anggaran (APBDes/DD)", aspek_id: "aspek-2", bobot: 15, deskripsi: "Data anggaran desa dipublikasikan", aktif: true },
-  { id: "ind-11", kode: "KI.06", nama_indikator: "Galeri foto kegiatan desa", aspek_id: "aspek-2", bobot: 10, deskripsi: "Galeri foto berisi dokumentasi kegiatan", aktif: true },
-  { id: "ind-12", kode: "KI.07", nama_indikator: "Informasi kontak & peta lokasi kantor desa", aspek_id: "aspek-2", bobot: 15, deskripsi: "Alamat, telepon, email, dan peta kantor desa tersedia", aktif: true },
+  { id: "ind-06", kode: "KI.01", nama_indikator: "Profil desa lengkap (visi misi, sejarah, geografi)", aspek_id: "aspek-2", bobot: 15, deskripsi: "Halaman profil desa terisi lengkap", aktif: true, tipe_jawaban: "angka" },
+  { id: "ind-07", kode: "KI.02", nama_indikator: "Struktur organisasi pemerintah desa", aspek_id: "aspek-2", bobot: 10, deskripsi: "SOTK desa ditampilkan dengan foto dan jabatan", aktif: true, tipe_jawaban: "angka" },
+  { id: "ind-08", kode: "KI.03", nama_indikator: "Berita/artikel terbaru (update 30 hari terakhir)", aspek_id: "aspek-2", bobot: 20, deskripsi: "Minimal 1 berita/artikel diterbitkan dalam 30 hari terakhir", aktif: true, tipe_jawaban: "angka" },
+  { id: "ind-09", kode: "KI.04", nama_indikator: "Informasi layanan publik (persyaratan surat, dll)", aspek_id: "aspek-2", bobot: 15, deskripsi: "Informasi tentang layanan administrasi tersedia", aktif: true, tipe_jawaban: "angka" },
+  { id: "ind-10", kode: "KI.05", nama_indikator: "Transparansi anggaran (APBDes/DD)", aspek_id: "aspek-2", bobot: 15, deskripsi: "Data anggaran desa dipublikasikan", aktif: true, tipe_jawaban: "angka" },
+  { id: "ind-11", kode: "KI.06", nama_indikator: "Galeri foto kegiatan desa", aspek_id: "aspek-2", bobot: 10, deskripsi: "Galeri foto berisi dokumentasi kegiatan", aktif: true, tipe_jawaban: "angka" },
+  { id: "ind-12", kode: "KI.07", nama_indikator: "Informasi kontak & peta lokasi kantor desa", aspek_id: "aspek-2", bobot: 15, deskripsi: "Alamat, telepon, email, dan peta kantor desa tersedia", aktif: true, tipe_jawaban: "angka" },
 
   // Tata Kelola (aspek-4)
-  { id: "ind-13", kode: "TK.01", nama_indikator: "Keaktifan operator (login rutin)", aspek_id: "aspek-4", bobot: 25, deskripsi: "Operator desa login dan melakukan update minimal seminggu sekali", aktif: true },
-  { id: "ind-14", kode: "TK.02", nama_indikator: "Jumlah admin/operator memadai (min 2 orang)", aspek_id: "aspek-4", bobot: 20, deskripsi: "Minimal 2 orang ditunjuk sebagai admin/operator website", aktif: true },
-  { id: "ind-15", kode: "TK.03", nama_indikator: "SOP pengelolaan website desa tersedia", aspek_id: "aspek-4", bobot: 20, deskripsi: "Desa memiliki SOP atau SK pengelolaan website", aktif: true },
-  { id: "ind-16", kode: "TK.04", nama_indikator: "Tindak lanjut kendala/masukan tepat waktu", aspek_id: "aspek-4", bobot: 20, deskripsi: "Kendala yang dilaporkan ditindaklanjuti dalam waktu 14 hari", aktif: true },
-  { id: "ind-17", kode: "TK.05", nama_indikator: "Backup data rutin", aspek_id: "aspek-4", bobot: 15, deskripsi: "Data website dibackup secara rutin (minimal bulanan)", aktif: true },
+  { id: "ind-13", kode: "TK.01", nama_indikator: "Keaktifan operator (login rutin)", aspek_id: "aspek-4", bobot: 25, deskripsi: "Operator desa login dan melakukan update minimal seminggu sekali", aktif: true, tipe_jawaban: "angka" },
+  { id: "ind-14", kode: "TK.02", nama_indikator: "Jumlah admin/operator memadai (min 2 orang)", aspek_id: "aspek-4", bobot: 20, deskripsi: "Minimal 2 orang ditunjuk sebagai admin/operator website", aktif: true, tipe_jawaban: "angka" },
+  { id: "ind-15", kode: "TK.03", nama_indikator: "SOP pengelolaan website desa tersedia", aspek_id: "aspek-4", bobot: 20, deskripsi: "Desa memiliki SOP atau SK pengelolaan website", aktif: true, tipe_jawaban: "angka" },
+  { id: "ind-16", kode: "TK.04", nama_indikator: "Tindak lanjut kendala/masukan tepat waktu", aspek_id: "aspek-4", bobot: 20, deskripsi: "Kendala yang dilaporkan ditindaklanjuti dalam waktu 14 hari", aktif: true, tipe_jawaban: "angka" },
+  { id: "ind-17", kode: "TK.05", nama_indikator: "Backup data rutin", aspek_id: "aspek-4", bobot: 15, deskripsi: "Data website dibackup secara rutin (minimal bulanan)", aktif: true, tipe_jawaban: "angka" },
 ];
 
 // ========== INDIKATOR OPENSID ==========
 export const indikatorOpenSIDData: MasterIndikatorOpenSID[] = [
-  { id: "oid-01", kode: "OS.01", nama_indikator: "Pembaruan data penduduk rutin", bobot_tambahan: 15, deskripsi: "Data kependudukan di-update minimal sebulan sekali", aktif: true },
-  { id: "oid-02", kode: "OS.02", nama_indikator: "Layanan surat online aktif", bobot_tambahan: 20, deskripsi: "Fitur pembuatan surat menyurat digunakan secara aktif", aktif: true },
-  { id: "oid-03", kode: "OS.03", nama_indikator: "Statistik kependudukan dipublikasikan", bobot_tambahan: 15, deskripsi: "Widget statistik (grafik/tabel) tampil di website", aktif: true },
-  { id: "oid-04", kode: "OS.04", nama_indikator: "Modul SDGs Desa diaktifkan", bobot_tambahan: 10, deskripsi: "Data SDGs Desa terisi dan dipublikasikan", aktif: true },
-  { id: "oid-05", kode: "OS.05", nama_indikator: "Layanan mandiri warga aktif", bobot_tambahan: 15, deskripsi: "Warga dapat mengakses layanan mandiri (pengaduan, surat)", aktif: true },
-  { id: "oid-06", kode: "OS.06", nama_indikator: "Modul inventaris/aset desa terisi", bobot_tambahan: 10, deskripsi: "Data inventaris dan aset desa ter-update", aktif: true },
-  { id: "oid-07", kode: "OS.07", nama_indikator: "Peta wilayah desa tersedia", bobot_tambahan: 10, deskripsi: "Peta OpenStreetMap wilayah desa terkonfigurasi", aktif: true },
-  { id: "oid-08", kode: "OS.08", nama_indikator: "Versi OpenSID terbaru (update rutin)", bobot_tambahan: 5, deskripsi: "OpenSID ter-update ke versi terbaru", aktif: true },
+  { id: "oid-01", kode: "OS.01", nama_indikator: "Pembaruan data penduduk rutin", bobot_tambahan: 15, deskripsi: "Data kependudukan di-update minimal sebulan sekali", aktif: true, tipe_jawaban: "angka" },
+  { id: "oid-02", kode: "OS.02", nama_indikator: "Layanan surat online aktif", bobot_tambahan: 20, deskripsi: "Fitur pembuatan surat menyurat digunakan secara aktif", aktif: true, tipe_jawaban: "angka" },
+  { id: "oid-03", kode: "OS.03", nama_indikator: "Statistik kependudukan dipublikasikan", bobot_tambahan: 15, deskripsi: "Widget statistik (grafik/tabel) tampil di website", aktif: true, tipe_jawaban: "angka" },
+  { id: "oid-04", kode: "OS.04", nama_indikator: "Modul SDGs Desa diaktifkan", bobot_tambahan: 10, deskripsi: "Data SDGs Desa terisi dan dipublikasikan", aktif: true, tipe_jawaban: "angka" },
+  { id: "oid-05", kode: "OS.05", nama_indikator: "Layanan mandiri warga aktif", bobot_tambahan: 15, deskripsi: "Warga dapat mengakses layanan mandiri (pengaduan, surat)", aktif: true, tipe_jawaban: "angka" },
+  { id: "oid-06", kode: "OS.06", nama_indikator: "Modul inventaris/aset desa terisi", bobot_tambahan: 10, deskripsi: "Data inventaris dan aset desa ter-update", aktif: true, tipe_jawaban: "angka" },
+  { id: "oid-07", kode: "OS.07", nama_indikator: "Peta wilayah desa tersedia", bobot_tambahan: 10, deskripsi: "Peta OpenStreetMap wilayah desa terkonfigurasi", aktif: true, tipe_jawaban: "angka" },
+  { id: "oid-08", kode: "OS.08", nama_indikator: "Versi OpenSID terbaru (update rutin)", bobot_tambahan: 5, deskripsi: "OpenSID ter-update ke versi terbaru", aktif: true, tipe_jawaban: "angka" },
 ];
 
 // ========== PERIODE EVALUASI ==========
