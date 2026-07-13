@@ -35,6 +35,9 @@ create table master_server (
     lokasi_server varchar(50) not null check (lokasi_server in ('Mandiri', 'Kabupaten', 'Provinsi', 'PDN', 'Lainnya')),
     ip_privat varchar(50),
     ip_publik varchar(50),
+    ram varchar(50),
+    processor varchar(100),
+    disk varchar(100),
     created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
@@ -227,4 +230,4 @@ CREATE POLICY "Public access for hasil_evaluasi" ON hasil_evaluasi FOR ALL USING
 CREATE POLICY "Public access for log_monitoring" ON log_monitoring_otomatis FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Public access for kendala" ON kendala FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Public access for users_app" ON users_app FOR ALL USING (true) WITH CHECK (true);
-
+CREATE POLICY "Public access for master_server" ON master_server FOR ALL USING (true) WITH CHECK (true);

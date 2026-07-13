@@ -22,7 +22,10 @@ export default function MasterServerPage() {
     nama_server: "",
     lokasi_server: "Mandiri",
     ip_privat: "",
-    ip_publik: ""
+    ip_publik: "",
+    ram: "",
+    processor: "",
+    disk: ""
   });
 
   useEffect(() => {
@@ -53,7 +56,10 @@ export default function MasterServerPage() {
       nama_server: "",
       lokasi_server: "Mandiri",
       ip_privat: "",
-      ip_publik: ""
+      ip_publik: "",
+      ram: "",
+      processor: "",
+      disk: ""
     });
     setIsModalOpen(true);
   };
@@ -65,7 +71,10 @@ export default function MasterServerPage() {
       nama_server: item.nama_server,
       lokasi_server: item.lokasi_server,
       ip_privat: item.ip_privat || "",
-      ip_publik: item.ip_publik || ""
+      ip_publik: item.ip_publik || "",
+      ram: item.ram || "",
+      processor: item.processor || "",
+      disk: item.disk || ""
     });
     setIsModalOpen(true);
   };
@@ -85,8 +94,11 @@ export default function MasterServerPage() {
       const payload = {
         nama_server: formData.nama_server,
         lokasi_server: formData.lokasi_server,
-        ip_privat: formData.ip_privat,
-        ip_publik: formData.ip_publik
+        ip_privat: formData.ip_privat || null,
+        ip_publik: formData.ip_publik || null,
+        ram: formData.ram || null,
+        processor: formData.processor || null,
+        disk: formData.disk || null
       };
 
       if (formData.id) {
@@ -101,7 +113,7 @@ export default function MasterServerPage() {
       fetchData();
     } catch (err: any) {
       console.error("Save error:", err);
-      setError("Gagal menyimpan data server.");
+      setError(err.message || "Gagal menyimpan data server. Pastikan SQL ALTER TABLE sudah dijalankan.");
     } finally {
       setSaving(false);
     }
@@ -169,6 +181,7 @@ export default function MasterServerPage() {
                   <th>Lokasi / Pengelola</th>
                   <th>IP Privat</th>
                   <th>IP Publik</th>
+                  <th>Spesifikasi</th>
                   <th style={{ width: 100, textAlign: "right" }}>Aksi</th>
                 </tr>
               </thead>
@@ -201,6 +214,15 @@ export default function MasterServerPage() {
                     </td>
                     <td style={{ fontFamily: "monospace", fontSize: 13, color: "var(--muted-foreground)" }}>
                       {item.ip_publik || "-"}
+                    </td>
+                    <td style={{ fontSize: 13, color: "var(--muted-foreground)" }}>
+                      {item.ram || item.processor || item.disk ? (
+                        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                          {item.processor && <span>CPU: {item.processor}</span>}
+                          {item.ram && <span>RAM: {item.ram}</span>}
+                          {item.disk && <span>Disk: {item.disk}</span>}
+                        </div>
+                      ) : "-"}
                     </td>
                     <td>
                       <div style={{ display: "flex", gap: 4, justifyContent: "flex-end" }}>
@@ -289,6 +311,40 @@ export default function MasterServerPage() {
                 onChange={(e) => setFormData({ ...formData, ip_publik: e.target.value })}
               />
             </div>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+            <div className="form-group">
+              <label className="form-label">Processor (CPU)</label>
+              <input
+                type="text"
+                className="form-input"
+                placeholder="Contoh: 4 Core"
+                value={formData.processor}
+                onChange={(e) => setFormData({ ...formData, processor: e.target.value })}
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Kapasitas RAM</label>
+              <input
+                type="text"
+                className="form-input"
+                placeholder="Contoh: 8 GB"
+                value={formData.ram}
+                onChange={(e) => setFormData({ ...formData, ram: e.target.value })}
+              />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Kapasitas Penyimpanan (Disk)</label>
+            <input
+              type="text"
+              className="form-input"
+              placeholder="Contoh: 100 GB NVMe"
+              value={formData.disk}
+              onChange={(e) => setFormData({ ...formData, disk: e.target.value })}
+            />
           </div>
 
           <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, marginTop: 16 }}>
