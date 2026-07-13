@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { ArrowLeft, Save, AlertTriangle, Loader2, CheckCircle2, ChevronDown, ChevronRight, Calculator } from "lucide-react";
 import Link from "next/link";
 import { calculateSkorPerAspek, calculateTotalSkor, getKlasifikasi, getKlasifikasiColor } from "@/lib/scoring-engine";
+import type { Klasifikasi } from "@/lib/types";
 
 export default function PenilaianFormPage() {
   const params = useParams();
