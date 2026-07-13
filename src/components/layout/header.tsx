@@ -1,37 +1,99 @@
 "use client";
 
-import { Bell, Search, Calendar, ChevronDown } from "lucide-react";
-import { useState } from "react";
-import { periodeData } from "@/lib/mock-data";
+import { Bell, Calendar, ChevronDown, Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { supabase } from "@/lib/supabase";
 
 export function Header() {
-  const [periodeId, setPeriodeId] = useState(
-    periodeData.find((p) => p.status === "berjalan")?.id ?? periodeData[0].id
-  );
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+
+  const [periodeData, setPeriodeData] = useState<any[]>([]);
+  const [selectedId, setSelectedId] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchPeriods();
+  }, []);
+
+  async function fetchPeriods() {
+    try {
+      const { data, error } = await supabase
+        .from("periode_evaluasi")
+        .select("*")
+        .order("tanggal_mulai", { ascending: false });
+
+      if (error) throw error;
+
+      setPeriodeData(data || []);
+      
+      // Determine initial selected period
+      const urlPeriode = searchParams.get("periode");
+      const active = data?.find((p) => p.status === "berjalan");
+      const initialId = urlPeriode || active?.id || data?.[0]?.id || "";
+      
+      setSelectedId(initialId);
+
+      // If URL does not have it, set it in URL
+      if (!urlPeriode && initialId) {
+        updateUrl(initialId);
+      }
+    } catch (err) {
+      console.error("Failed to load periods for header:", err);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // Monitor URL parameter changes externally
+  useEffect(() => {
+    const urlPeriode = searchParams.get("periode");
+    if (urlPeriode && urlPeriode !== selectedId) {
+      setSelectedId(urlPeriode);
+    }
+  }, [searchParams]);
+
+  const updateUrl = (id: string) => {
+    const params = new URLSearchParams(window.location.search);
+    params.set("periode", id);
+    router.push(`${pathname}?${params.toString()}`);
+  };
+
+  const handlePeriodChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const id = e.target.value;
+    setSelectedId(id);
+    updateUrl(id);
+  };
 
   return (
     <header className="main-header">
       <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-        <div className="search-box" style={{ display: "none" }}>
-          {/* Hidden on small, can be shown */}
-          <Search size={16} />
-          <input placeholder="Cari desa, kecamatan..." />
-        </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <Calendar size={16} style={{ color: "var(--muted-foreground)" }} />
-          <select
-            className="form-select"
-            style={{ width: "auto", minWidth: 180, padding: "6px 12px", fontSize: 13 }}
-            value={periodeId}
-            onChange={(e) => setPeriodeId(e.target.value)}
-          >
-            {periodeData.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.nama_periode}
-                {p.status === "berjalan" ? " (Aktif)" : ""}
-              </option>
-            ))}
-          </select>
+          {loading ? (
+            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "var(--muted-foreground)" }}>
+              <Loader2 className="animate-spin" size={14} /> Memuat periode...
+            </div>
+          ) : (
+            <select
+              className="form-select"
+              style={{ width: "auto", minWidth: 200, padding: "6px 12px", fontSize: 13, fontWeight: 500 }}
+              value={selectedId}
+              onChange={handlePeriodChange}
+            >
+              {periodeData.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.nama_periode}
+                  {p.status === "berjalan" ? " (Aktif)" : ""}
+                </option>
+              ))}
+              {periodeData.length === 0 && (
+                <option value="">Belum Ada Periode</option>
+              )}
+            </select>
+          )}
         </div>
       </div>
 

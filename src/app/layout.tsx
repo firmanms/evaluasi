@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -33,7 +34,9 @@ export default function RootLayout({
       <body className="min-h-full flex">
         <Sidebar />
         <div className="main-content" style={{ flex: 1 }}>
-          <Header />
+          <Suspense fallback={<div className="main-header" style={{ display: 'flex', alignItems: 'center', padding: '0 24px', height: 64, borderBottom: '1px solid var(--border)', background: 'var(--card)' }}>Memuat...</div>}>
+            <Header />
+          </Suspense>
           <main className="main-body">{children}</main>
         </div>
       </body>

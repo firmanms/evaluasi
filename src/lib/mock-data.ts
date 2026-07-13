@@ -156,19 +156,23 @@ function generateHasilEvaluasi(): HasilEvaluasi[] {
   const results: HasilEvaluasi[] = [];
   const periodes = ["per-01", "per-02"];
 
+  let idx = 0;
   for (const periodeId of periodes) {
     for (const desa of desaData) {
-      // Generate realistic-looking random scores
-      const baseSkor = 30 + Math.random() * 60; // 30-90 range
-      const variance = (Math.random() - 0.5) * 20;
+      idx++;
+      // Generate realistic-looking deterministic scores using indices instead of Math.random()
+      const baseSkor = 50 + (idx % 40); // 50-90 range
+      const variance = (idx % 20) - 10;
       const adjustedSkor = Math.max(10, Math.min(98, baseSkor + variance));
       const totalSkor = Math.round(adjustedSkor * 10) / 10;
 
       const skorPerAspek: Record<string, number> = {};
+      let aspectIdx = 0;
       for (const aspek of aspekData) {
+        aspectIdx++;
         const aspekSkor = Math.max(
           0,
-          Math.min(100, totalSkor + (Math.random() - 0.5) * 30)
+          Math.min(100, totalSkor + ((idx + aspectIdx) % 30) - 15)
         );
         skorPerAspek[aspek.id] = Math.round(aspekSkor * 10) / 10;
       }
@@ -198,16 +202,18 @@ function generateLogMonitoring(): LogMonitoring[] {
   const logs: LogMonitoring[] = [];
   const sampleDesa = desaData.slice(0, 50);
 
+  let idx = 0;
   for (const desa of sampleDesa) {
-    const httpOk = Math.random() > 0.12;
+    idx++;
+    const httpOk = (idx % 8) !== 0; // Deterministic 200/error
     logs.push({
       id: `log-${desa.id}`,
       desa_id: desa.id,
       tanggal_cek: "2026-07-12T08:00:00Z",
-      http_status: httpOk ? 200 : Math.random() > 0.5 ? 404 : 503,
-      https_aktif: httpOk && Math.random() > 0.15,
+      http_status: httpOk ? 200 : (idx % 2 === 0 ? 404 : 503),
+      https_aktif: httpOk && (idx % 3 !== 0),
       response_time_ms: httpOk
-        ? Math.round(200 + Math.random() * 2500)
+        ? 200 + (idx * 37) % 2000
         : 0,
       keterangan: httpOk ? "OK" : "Website tidak dapat diakses",
     });
@@ -237,12 +243,12 @@ export const masterWebsiteData: MasterWebsite[] = desaData.slice(0, 30).map((des
   operator: `Operator ${desa.nama_desa}`,
   no_wa: `08${1200000000 + i * 1111}`,
   email: `operator@${desa.nama_desa.toLowerCase().replace(/\s+/g, "")}.desa.id`,
-  tahun_mulai_gunakan: 2020 + Math.floor(Math.random() * 5),
-  jumlah_operator: 1 + Math.floor(Math.random() * 3),
-  perangkat_digunakan: ["Laptop", "PC Desktop", "HP Android"][Math.floor(Math.random() * 3)],
-  kecepatan_internet: ["< 5 Mbps", "5-10 Mbps", "10-20 Mbps", "> 20 Mbps"][Math.floor(Math.random() * 4)],
-  pengelola_website: ["Sekretaris Desa", "Kaur Umum", "Staf IT Desa", "Operator Desa"][Math.floor(Math.random() * 4)],
-  frekuensi_update: ["Harian", "Mingguan", "Bulanan", "Jarang"][Math.floor(Math.random() * 4)],
+  tahun_mulai_gunakan: 2020 + (i % 5),
+  jumlah_operator: 1 + (i % 3),
+  perangkat_digunakan: ["Laptop", "PC Desktop", "HP Android"][i % 3],
+  kecepatan_internet: ["< 5 Mbps", "5-10 Mbps", "10-20 Mbps", "> 20 Mbps"][i % 4],
+  pengelola_website: ["Sekretaris Desa", "Kaur Umum", "Staf IT Desa", "Operator Desa"][i % 4],
+  frekuensi_update: ["Harian", "Mingguan", "Bulanan", "Jarang"][i % 4],
   kendala: "",
   saran: "",
   updated_at: "2026-06-15T10:00:00Z",
