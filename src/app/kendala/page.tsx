@@ -43,7 +43,7 @@ export default function KendalaPage() {
     try {
       const [desaRes, periodeRes] = await Promise.all([
         supabase.from("desa").select("id, nama_desa, kecamatan(nama_kecamatan)").order("nama_desa"),
-        supabase.from("master_periode").select("id, nama_periode, status_aktif").order("tanggal_mulai", { ascending: false })
+        supabase.from("periode_evaluasi").select("id, nama_periode, status").order("tanggal_mulai", { ascending: false })
       ]);
 
       if (desaRes.data) {
@@ -56,7 +56,7 @@ export default function KendalaPage() {
 
       if (periodeRes.data) {
         setPeriodeList(periodeRes.data);
-        const active = periodeRes.data.find(p => p.status_aktif);
+        const active = periodeRes.data.find(p => p.status === "berjalan");
         if (active && !filterPeriode) {
           setFilterPeriode(active.id); // Default filter to active period
         } else if (periodeRes.data.length > 0 && !filterPeriode) {
