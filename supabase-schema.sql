@@ -28,10 +28,21 @@ create table desa (
     unique(nama_desa, kecamatan_id)
 );
 
+    -- 2.5. Tabel Master Server
+create table master_server (
+    id uuid default gen_random_uuid() primary key,
+    nama_server varchar(100) not null,
+    lokasi_server varchar(50) not null check (lokasi_server in ('Mandiri', 'Kabupaten', 'Provinsi', 'PDN', 'Lainnya')),
+    ip_privat varchar(50),
+    ip_publik varchar(50),
+    created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
 -- 3. Tabel Master Website (Profil Pengelolaan - 1 to 1 dengan Desa)
 create table master_website (
     id uuid default gen_random_uuid() primary key,
     desa_id uuid references desa(id) on delete cascade not null unique,
+    server_id uuid references master_server(id) on delete set null,
     operator varchar(150),
     no_wa varchar(20),
     email varchar(150),
@@ -43,6 +54,9 @@ create table master_website (
     frekuensi_update varchar(50),     -- harian, mingguan, bulanan, jarang
     kendala text,
     saran text,
+    versi varchar(50),
+    jenis_versi varchar(50) default '-', -- Umum, Premium, Lainnya, -
+    status_website varchar(50) default 'Aktif', -- Aktif, Tidak Aktif, Error, Maintenance, Diblokir, Lainnya
     updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 

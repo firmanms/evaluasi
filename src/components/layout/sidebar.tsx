@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, Building2, MapPin, ClipboardCheck, ListChecks,
   BarChart3, Globe, AlertTriangle, FileText, Users, Settings,
-  ChevronDown, Activity, Award, Menu, X
+  ChevronDown, Activity, Award, Menu, X, Server
 } from "lucide-react";
 
 const navigation = [
@@ -21,6 +21,7 @@ const navigation = [
     items: [
       { title: "Kecamatan", href: "/master/kecamatan", icon: Building2 },
       { title: "Desa / Kelurahan", href: "/master/desa", icon: MapPin },
+      { title: "Server", href: "/master/server", icon: Server },
       { title: "Indikator", href: "/master/indikator", icon: ListChecks },
       { title: "Aspek & Bobot", href: "/master/aspek", icon: Settings },
       { title: "Periode Evaluasi", href: "/master/periode", icon: Activity },
