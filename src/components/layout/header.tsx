@@ -4,11 +4,13 @@ import { Bell, Calendar, ChevronDown, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/components/layout/auth-wrapper";
 
 export function Header() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
+  const { user, signOut } = useAuth();
 
   const [periodeData, setPeriodeData] = useState<any[]>([]);
   const [selectedId, setSelectedId] = useState("");
@@ -152,16 +154,23 @@ export function Header() {
               fontWeight: 700,
             }}
           >
-            SA
+            {user?.nama ? user.nama.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase() : "SA"}
           </div>
           <div className="hidden md:block">
-            <div style={{ fontSize: 13, fontWeight: 500 }}>Admin Diskominfo</div>
+            <div style={{ fontSize: 13, fontWeight: 500 }}>{user?.nama || "Admin Diskominfo"}</div>
             <div style={{ fontSize: 11, color: "var(--muted-foreground)" }}>
-              Super Admin
+              {user?.role ? user.role.replace("_", " ") : "Super Admin"}
             </div>
           </div>
-          <ChevronDown size={14} style={{ color: "var(--muted-foreground)" }} className="hidden md:block" />
         </div>
+
+        <button 
+          className="btn-ghost" 
+          onClick={signOut}
+          style={{ fontSize: 13, color: "#ef4444", padding: "6px 12px", border: "1px solid #ef444433", borderRadius: 8 }}
+        >
+          Keluar
+        </button>
       </div>
     </header>
   );

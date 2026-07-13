@@ -5,6 +5,8 @@ import "./globals.css";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
 
+import { AuthWrapper } from "@/components/layout/auth-wrapper";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -32,13 +34,9 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex">
-        <Sidebar />
-        <div className="main-content" style={{ flex: 1 }}>
-          <Suspense fallback={<div className="main-header" style={{ display: 'flex', alignItems: 'center', padding: '0 24px', height: 64, borderBottom: '1px solid var(--border)', background: 'var(--card)' }}>Memuat...</div>}>
-            <Header />
-          </Suspense>
-          <main className="main-body">{children}</main>
-        </div>
+        <AuthWrapper>
+          {children}
+        </AuthWrapper>
       </body>
     </html>
   );
