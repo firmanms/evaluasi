@@ -27,8 +27,8 @@ export default function DashboardPage() {
     async function init() {
       let pId = activePeriodeId;
       if (!pId) {
-        // Fetch active periode
-        const { data } = await supabase.from("master_periode").select("id").eq("status_aktif", true).single();
+        // Fetch active periode (status berjalan)
+        const { data } = await supabase.from("periode_evaluasi").select("id").eq("status", "berjalan").limit(1).maybeSingle();
         if (data) pId = data.id;
       }
       if (pId) {
