@@ -382,6 +382,9 @@ function IndicatorRow({
   onChangeCatatan, 
   isLast 
 }: any) {
+  const isPilihan = ind.tipe_jawaban === "pilihan";
+  const pilihan = ind.pilihan_jawaban || [];
+
   return (
     <div style={{ padding: "20px 24px", borderBottom: isLast ? "none" : "1px solid var(--border)", display: "flex", gap: 24 }}>
       <div style={{ flex: 1 }}>
@@ -402,38 +405,75 @@ function IndicatorRow({
         />
       </div>
       
-      <div style={{ width: 200, flexShrink: 0 }}>
+      <div style={{ width: 220, flexShrink: 0 }}>
         <div style={{ fontSize: 12, color: "var(--muted-foreground)", marginBottom: 8, textAlign: "right" }}>
-          Penilaian (0 - 100)
+          Penilaian {isPilihan ? "(Pilih Opsi)" : "(0 - 100)"}
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <input 
-            type="range" 
-            min="0" 
-            max="100" 
-            step="10"
-            style={{ flex: 1 }}
-            value={value}
-            onChange={(e) => onChangeSkor(Number(e.target.value))}
-          />
-          <div style={{ 
-            width: 44, 
-            height: 36, 
-            background: "var(--background)", 
-            border: "1px solid var(--border)", 
-            borderRadius: 6,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontWeight: 600
-          }}>
-            {value}
+        
+        {isPilihan ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {pilihan.map((opt: any, idx: number) => (
+              <label 
+                key={idx} 
+                style={{ 
+                  display: "flex", 
+                  alignItems: "center", 
+                  gap: 8, 
+                  padding: "8px 12px", 
+                  border: "1px solid var(--border)", 
+                  borderRadius: 6,
+                  cursor: "pointer",
+                  background: value === opt.nilai ? "rgba(59,130,246,0.05)" : "transparent",
+                  borderColor: value === opt.nilai ? "#3b82f6" : "var(--border)"
+                }}
+              >
+                <input 
+                  type="radio" 
+                  name={`opt_${sumber}_${ind.id}`} 
+                  value={opt.nilai}
+                  checked={value === opt.nilai}
+                  onChange={() => onChangeSkor(opt.nilai)}
+                  style={{ cursor: "pointer" }}
+                />
+                <div style={{ display: "flex", justifyContent: "space-between", flex: 1, fontSize: 13 }}>
+                  <span>{opt.label}</span>
+                  <span style={{ fontWeight: 600, color: "var(--muted-foreground)" }}>({opt.nilai})</span>
+                </div>
+              </label>
+            ))}
           </div>
-        </div>
-        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "var(--muted-foreground)", marginTop: 4 }}>
-          <span>0 (Buruk)</span>
-          <span>100 (Sempurna)</span>
-        </div>
+        ) : (
+          <>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <input 
+                type="range" 
+                min="0" 
+                max="100" 
+                step="10"
+                style={{ flex: 1 }}
+                value={value}
+                onChange={(e) => onChangeSkor(Number(e.target.value))}
+              />
+              <div style={{ 
+                width: 44, 
+                height: 36, 
+                background: "var(--background)", 
+                border: "1px solid var(--border)", 
+                borderRadius: 6,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontWeight: 600
+              }}>
+                {value}
+              </div>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "var(--muted-foreground)", marginTop: 4 }}>
+              <span>0 (Buruk)</span>
+              <span>100 (Sempurna)</span>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

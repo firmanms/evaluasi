@@ -80,6 +80,8 @@ create table master_indikator (
     bobot numeric(5, 2) not null check (bobot >= 0),
     deskripsi text,
     aktif boolean default true not null,
+    tipe_jawaban varchar(50) default 'angka' not null,
+    pilihan_jawaban jsonb,
     created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
@@ -91,6 +93,8 @@ create table master_indikator_opensid (
     bobot_tambahan numeric(5, 2) not null check (bobot_tambahan >= 0),
     deskripsi text,
     aktif boolean default true not null,
+    tipe_jawaban varchar(50) default 'angka' not null,
+    pilihan_jawaban jsonb,
     created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 

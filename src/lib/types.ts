@@ -63,6 +63,11 @@ export interface MasterAspek {
   bobot_persen: number;
 }
 
+export interface PilihanJawaban {
+  label: string;
+  nilai: number;
+}
+
 export interface MasterIndikator {
   id: string;
   kode: string;
@@ -71,6 +76,8 @@ export interface MasterIndikator {
   bobot: number;
   deskripsi: string;
   aktif: boolean;
+  tipe_jawaban: "angka" | "pilihan";
+  pilihan_jawaban?: PilihanJawaban[] | null;
 }
 
 export interface MasterIndikatorOpenSID {
@@ -80,6 +87,8 @@ export interface MasterIndikatorOpenSID {
   bobot_tambahan: number;
   deskripsi: string;
   aktif: boolean;
+  tipe_jawaban: "angka" | "pilihan";
+  pilihan_jawaban?: PilihanJawaban[] | null;
 }
 
 export interface PeriodeEvaluasi {

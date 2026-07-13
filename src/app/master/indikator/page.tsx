@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Edit, Trash2, Search, Loader2, AlertTriangle } from "lucide-react";
+import { Plus, Edit, Trash2, Search, Loader2, AlertTriangle, Plus as PlusIcon, X } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Modal } from "@/components/ui/modal";
 
@@ -27,6 +27,8 @@ export default function IndikatorPage() {
   const [deskripsi, setDeskripsi] = useState("");
   const [bobot, setBobot] = useState<number>(0);
   const [aktif, setAktif] = useState(true);
+  const [tipeJawaban, setTipeJawaban] = useState<"angka" | "pilihan">("angka");
+  const [pilihanJawaban, setPilihanJawaban] = useState<any[]>([]);
   
   const [formLoading, setFormLoading] = useState(false);
   const [error, setError] = useState("");
@@ -64,6 +66,8 @@ export default function IndikatorPage() {
     setDeskripsi("");
     setBobot(0);
     setAktif(true);
+    setTipeJawaban("angka");
+    setPilihanJawaban([]);
     setError("");
     setIsModalOpen(true);
   };
@@ -76,6 +80,8 @@ export default function IndikatorPage() {
     setDeskripsi(ind.deskripsi || "");
     setBobot(ind.bobot);
     setAktif(ind.aktif);
+    setTipeJawaban(ind.tipe_jawaban || "angka");
+    setPilihanJawaban(ind.pilihan_jawaban || []);
     setError("");
     setIsModalOpen(true);
   };
@@ -99,7 +105,9 @@ export default function IndikatorPage() {
       aspek_id: aspekId,
       deskripsi: deskripsi.trim() || null,
       bobot: Number(bobot),
-      aktif
+      aktif,
+      tipe_jawaban: tipeJawaban,
+      pilihan_jawaban: tipeJawaban === "pilihan" ? pilihanJawaban : null
     };
 
     try {
@@ -369,6 +377,104 @@ export default function IndikatorPage() {
                 style={{ resize: "vertical" }}
               />
             </div>
+
+            <div className="form-group">
+              <label className="form-label">Tipe Jawaban Penilaian</label>
+              <div style={{ display: "flex", gap: 16, marginTop: 8 }}>
+                <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 14 }}>
+                  <input
+                    type="radio"
+                    name="tipeJawaban"
+                    value="angka"
+                    checked={tipeJawaban === "angka"}
+                    onChange={(e) => setTipeJawaban(e.target.value as "angka")}
+                    disabled={formLoading}
+                  />
+                  Bebas Angka (Input Nilai 0 - 100)
+                </label>
+                <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 14 }}>
+                  <input
+                    type="radio"
+                    name="tipeJawaban"
+                    value="pilihan"
+                    checked={tipeJawaban === "pilihan"}
+                    onChange={(e) => setTipeJawaban(e.target.value as "pilihan")}
+                    disabled={formLoading}
+                  />
+                  Pilihan Ganda Dinamis (Ya/Tidak, Lengkap/Sebagian)
+                </label>
+              </div>
+            </div>
+
+            {tipeJawaban === "pilihan" && (
+              <div style={{ background: "var(--muted)", padding: 16, borderRadius: 8, marginBottom: 16 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                  <h4 style={{ fontSize: 14, fontWeight: 600, margin: 0 }}>Opsi Pilihan Jawaban</h4>
+                  <button
+                    type="button"
+                    onClick={() => setPilihanJawaban([...pilihanJawaban, { label: "", nilai: 0 }])}
+                    className="btn btn-secondary"
+                    style={{ padding: "4px 12px", fontSize: 12, display: "flex", alignItems: "center", gap: 4 }}
+                    disabled={formLoading}
+                  >
+                    <PlusIcon size={14} /> Tambah Opsi
+                  </button>
+                </div>
+
+                {pilihanJawaban.length === 0 ? (
+                  <div style={{ fontSize: 13, color: "var(--muted-foreground)", textAlign: "center", padding: "12px 0" }}>
+                    Belum ada opsi. Klik "Tambah Opsi" untuk menambahkan.
+                  </div>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    {pilihanJawaban.map((opt, idx) => (
+                      <div key={idx} style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                        <input
+                          type="text"
+                          className="form-input"
+                          placeholder="Label (misal: Ya)"
+                          value={opt.label}
+                          onChange={(e) => {
+                            const newOpts = [...pilihanJawaban];
+                            newOpts[idx].label = e.target.value;
+                            setPilihanJawaban(newOpts);
+                          }}
+                          style={{ flex: 1 }}
+                          required
+                          disabled={formLoading}
+                        />
+                        <input
+                          type="number"
+                          className="form-input"
+                          placeholder="Nilai (misal: 5)"
+                          value={opt.nilai}
+                          onChange={(e) => {
+                            const newOpts = [...pilihanJawaban];
+                            newOpts[idx].nilai = Number(e.target.value);
+                            setPilihanJawaban(newOpts);
+                          }}
+                          style={{ width: 100 }}
+                          required
+                          disabled={formLoading}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newOpts = [...pilihanJawaban];
+                            newOpts.splice(idx, 1);
+                            setPilihanJawaban(newOpts);
+                          }}
+                          style={{ background: "transparent", border: "none", color: "var(--destructive)", cursor: "pointer", padding: 8 }}
+                          disabled={formLoading}
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="form-group" style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <input 
