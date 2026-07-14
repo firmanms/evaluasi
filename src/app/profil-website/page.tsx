@@ -12,17 +12,17 @@ export default function ProfilWebsitePage() {
   const [desaList, setDesaList] = useState<any[]>([]);
   const [serverList, setServerList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
   const [search, setSearch] = useState("");
   const [filterKec, setFilterKec] = useState("");
-  
+
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   // Form state
   const [formData, setFormData] = useState({
     id: "",
@@ -79,7 +79,7 @@ export default function ProfilWebsitePage() {
         .order("nama_desa");
 
       if (desaErr) throw desaErr;
-      
+
       const flatDesa = (desaData || []).map((d) => ({
         id: d.id,
         nama_desa: d.nama_desa,
@@ -267,17 +267,17 @@ export default function ProfilWebsitePage() {
         const wsname = wb.SheetNames[0];
         const ws = wb.Sheets[wsname];
         const rows = XLSX.utils.sheet_to_json(ws) as any[];
-        
+
         let imported = 0;
         let updated = 0;
-        
+
         for (const row of rows) {
           if (!row.nama_desa || !row.nama_kecamatan) continue;
           const namaDesa = String(row.nama_desa).trim();
           const namaKecamatan = String(row.nama_kecamatan).trim();
-          
+
           // Find Desa ID using both nama_desa and nama_kecamatan
-          const desa = desaList.find(d => 
+          const desa = desaList.find(d =>
             d.nama_desa.toLowerCase() === namaDesa.toLowerCase() &&
             d.nama_kecamatan?.toLowerCase() === namaKecamatan.toLowerCase()
           );
@@ -288,7 +288,7 @@ export default function ProfilWebsitePage() {
 
           // Check if profile exists
           const exists = data.find(d => d.desa_id === desa.id);
-          
+
           // Match server
           let server_id = null;
           if (row.nama_server) {
@@ -327,7 +327,7 @@ export default function ProfilWebsitePage() {
             updated++;
           }
         }
-        
+
         alert(`Berhasil memproses data: ${imported} profil ditambahkan, ${updated} profil diperbarui.`);
         fetchData();
       } catch (err) {
@@ -335,7 +335,7 @@ export default function ProfilWebsitePage() {
         alert("Terjadi kesalahan saat membaca file Excel.");
         setLoading(false);
       }
-      
+
       // Reset file input
       if (fileInputRef.current) fileInputRef.current.value = "";
     };
@@ -415,65 +415,89 @@ export default function ProfilWebsitePage() {
           <Loader2 className="animate-spin" size={32} />
         </div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(360px, 1fr))", gap: 16 }}>
-          {filtered.map((item) => (
-            <div key={item.id} className="card" style={{ position: "relative", overflow: "hidden", paddingBottom: 16 }}>
-              <div style={{
-                position: "absolute", top: 0, left: 0, right: 0, height: 3,
-                background: "linear-gradient(90deg, #3b82f6, #8b5cf6)",
-              }} />
-              
-              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 16 }}>
-                <div>
-                  <h3 style={{ fontSize: 16, fontWeight: 600 }}>{item.nama_desa}</h3>
-                  <p style={{ fontSize: 13, color: "var(--muted-foreground)" }}>
-                    Kec. {item.nama_kecamatan}
-                  </p>
-                </div>
-                <div style={{ display: "flex", gap: 8 }}>
-                  <button className="btn-ghost" style={{ padding: 6, borderRadius: 6, color: "var(--primary)" }} onClick={() => openEditModal(item)}>
-                    <Edit2 size={16} />
-                  </button>
-                  <button className="btn-ghost" style={{ padding: 6, borderRadius: 6, color: "#ef4444" }} onClick={() => openDeleteModal(item)}>
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              </div>
-
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, fontSize: 13 }}>
-                <InfoItem icon={<Server size={14} />} label="Server Hosting" value={item.nama_server ? `${item.nama_server} (${item.lokasi_server})` : "-"} />
-                <InfoItem icon={<Globe size={14} />} label="Status Website" value={item.status_website || "Online"} />
-                <InfoItem icon={<Monitor size={14} />} label="Versi OpenSID" value={item.versi ? `${item.versi} (${item.jenis_versi || "-"})` : "-"} />
-                <InfoItem icon={<User size={14} />} label="Operator" value={item.operator || "-"} />
-                <InfoItem icon={<Phone size={14} />} label="WhatsApp" value={item.no_wa || "-"} />
-                <InfoItem icon={<Mail size={14} />} label="Email" value={item.email || "-"} />
-              </div>
-
-              <div style={{ marginTop: 16, paddingTop: 12, borderTop: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div>
-                  <span style={{ fontSize: 12, color: "var(--muted-foreground)" }}>Update: </span>
-                  <span className="badge" style={{
-                    background: item.frekuensi_update === "Harian" ? "rgba(16,185,129,0.12)" :
-                      item.frekuensi_update === "Mingguan" ? "rgba(59,130,246,0.12)" :
-                      item.frekuensi_update === "Bulanan" ? "rgba(245,158,11,0.12)" : "rgba(239,68,68,0.12)",
-                    color: item.frekuensi_update === "Harian" ? "#10b981" :
-                      item.frekuensi_update === "Mingguan" ? "#3b82f6" :
-                      item.frekuensi_update === "Bulanan" ? "#f59e0b" : "#ef4444",
-                  }}>
-                    {item.frekuensi_update || "Belum ada"}
-                  </span>
-                </div>
-                <span style={{ fontSize: 11, color: "var(--muted-foreground)" }}>
-                  {item.jumlah_operator} operator
-                </span>
-              </div>
-            </div>
-          ))}
-          {filtered.length === 0 && (
-            <div style={{ gridColumn: "1 / -1", padding: 40, textAlign: "center", color: "var(--muted-foreground)" }}>
-              Tidak ada profil website yang ditemukan.
-            </div>
-          )}
+        <div className="table-container animate-fade-in">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th style={{ width: "40px", textAlign: "center" }}>No</th>
+                <th>Desa / Kecamatan</th>
+                <th>Server & Infrastruktur</th>
+                <th>Kontak & Pengelola</th>
+                <th>Status & Kondisi</th>
+                <th style={{ width: "100px", textAlign: "center" }}>Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((item, index) => (
+                <tr key={item.id}>
+                  <td style={{ textAlign: "center", color: "var(--muted-foreground)" }}>{index + 1}</td>
+                  <td>
+                    <div style={{ fontWeight: 600, color: "var(--foreground)" }}>{item.nama_desa}</div>
+                    <div style={{ fontSize: 13, color: "var(--muted-foreground)" }}>Kec. {item.nama_kecamatan}</div>
+                  </td>
+                  <td>
+                    <div style={{ fontSize: 13, display: "flex", flexDirection: "column", gap: 4 }}>
+                      <div><span style={{ color: "var(--muted-foreground)" }}>Server:</span> {item.nama_server ? `${item.nama_server} (${item.lokasi_server})` : "-"}</div>
+                      <div><span style={{ color: "var(--muted-foreground)" }}>Versi:</span> {item.versi ? `${item.versi} (${item.jenis_versi || "-"})` : "-"}</div>
+                      <div><span style={{ color: "var(--muted-foreground)" }}>Perangkat:</span> {item.perangkat_digunakan || "-"}</div>
+                      <div><span style={{ color: "var(--muted-foreground)" }}>Internet:</span> {item.kecepatan_internet || "-"}</div>
+                    </div>
+                  </td>
+                  <td>
+                    <div style={{ fontSize: 13, display: "flex", flexDirection: "column", gap: 4 }}>
+                      <div><span style={{ color: "var(--muted-foreground)" }}>Op:</span> {item.operator || "-"} {item.no_wa ? `(${item.no_wa})` : ""}</div>
+                      <div><span style={{ color: "var(--muted-foreground)" }}>Email:</span> {item.email || "-"}</div>
+                      <div><span style={{ color: "var(--muted-foreground)" }}>PIC:</span> {item.pic_nama || "-"} {item.pic_no_tel ? `(${item.pic_no_tel})` : ""}</div>
+                      <div><span style={{ color: "var(--muted-foreground)" }}>Pengelola:</span> {item.pengelola_website || "-"} ({item.jumlah_operator} org)</div>
+                    </div>
+                  </td>
+                  <td>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                      <span className={`status-dot ${item.status_website === "Online" || item.status_website === "Aktif" ? "status-dot-green" : "status-dot-red"}`} />
+                      <span style={{ fontSize: 13, fontWeight: 500 }}>{item.status_website || "Online"}</span>
+                    </div>
+                    <span className="badge" style={{
+                      background: item.frekuensi_update === "Harian" ? "rgba(16,185,129,0.12)" :
+                        item.frekuensi_update === "Mingguan" ? "rgba(59,130,246,0.12)" :
+                          item.frekuensi_update === "Bulanan" ? "rgba(245,158,11,0.12)" : "rgba(239,68,68,0.12)",
+                      color: item.frekuensi_update === "Harian" ? "#10b981" :
+                        item.frekuensi_update === "Mingguan" ? "#3b82f6" :
+                          item.frekuensi_update === "Bulanan" ? "#f59e0b" : "#ef4444",
+                      marginBottom: 6,
+                      display: "inline-block"
+                    }}>
+                      Update: {item.frekuensi_update || "Belum ada"}
+                    </span>
+                    <div style={{ fontSize: 12, color: "var(--muted-foreground)", display: "flex", flexDirection: "column", gap: 2 }}>
+                      {item.kendala && <div><strong style={{ color: "#ef4444" }}>Kendala:</strong> {item.kendala}</div>}
+                      {item.saran && <div><strong style={{ color: "#3b82f6" }}>Saran:</strong> {item.saran}</div>}
+                    </div>
+                    <div style={{ fontSize: 12, color: "var(--muted-foreground)", display: "flex", flexDirection: "column", gap: 2 }}>
+                      Tahun Mulai Digunakan:
+                      {item.tahun_mulai_gunakan || "-"}
+                    </div>
+                  </td>
+                  <td>
+                    <div style={{ display: "flex", gap: 4, justifyContent: "center" }}>
+                      <button className="btn btn-ghost btn-sm" title="Edit" onClick={() => openEditModal(item)}>
+                        <Edit2 size={14} />
+                      </button>
+                      <button className="btn btn-ghost btn-sm" title="Hapus" style={{ color: "#ef4444" }} onClick={() => openDeleteModal(item)}>
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {filtered.length === 0 && (
+                <tr>
+                  <td colSpan={6} style={{ textAlign: "center", padding: 40, color: "var(--muted-foreground)" }}>
+                    Tidak ada profil website yang ditemukan.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       )}
 
@@ -489,7 +513,7 @@ export default function ProfilWebsitePage() {
               {error}
             </div>
           )}
-          
+
           <div className="form-group">
             <label className="form-label">Desa/Kelurahan *</label>
             <select
