@@ -65,53 +65,43 @@ export function getKlasifikasiColorClass(klasifikasi: Klasifikasi): string {
 
 /**
  * Calculate score per aspect for a given village+period
+ *
+ * Skor per aspek dihitung murni dari indikator umum yang ter-assign
+ * ke masing-masing aspek (berdasarkan aspek_id).
+ * Skor dinormalisasi ke 0-100: (total skor / total bobot maksimal) × 100
+ * Sehingga jika semua indikator diisi penuh, skor aspek = 100.
+ * bobot_tambahan dari indikator OpenSID belum digunakan.
  */
 export function calculateSkorPerAspek(
   penilaianDesa: Penilaian[],
   indikatorUmum: MasterIndikator[],
-  indikatorOpenSID: MasterIndikatorOpenSID[],
+  _indikatorOpenSID: MasterIndikatorOpenSID[],
   aspekList: MasterAspek[]
 ): Record<string, number> {
   const skorPerAspek: Record<string, number> = {};
 
   for (const aspek of aspekList) {
-    // Get indicators for this aspect (umum only, opensid contributes to its own aspect)
+    // Get all active indicators assigned to this aspect
     const indikatorAspek = indikatorUmum.filter(
       (ind) => ind.aspek_id === aspek.id && ind.aktif
     );
 
-    // For "Pemanfaatan OpenSID" aspect, include opensid indicators too
-    const isOpenSIDAspek = aspek.nama_aspek.includes("OpenSID");
+    let totalSkor = 0;
+    let totalBobotMaks = 0;
 
-    let totalBobot = 0;
-    let totalSkorTerbobot = 0;
-
-    // Calculate for general indicators
     for (const ind of indikatorAspek) {
       const penilaian = penilaianDesa.find(
-        (p) => p.indikator_id === ind.id && p.sumber_indikator === "umum"
+        (p) => p.indikator_id === ind.id
       );
-      const skor = penilaian?.skor ?? 0;
-      totalBobot += ind.bobot;
-      totalSkorTerbobot += skor * ind.bobot;
+      const skor = Number(penilaian?.skor) || 0;
+      const bobot = Number(ind.bobot) || 0;
+      totalSkor += skor;
+      totalBobotMaks += bobot;
     }
 
-    // Add OpenSID indicators if this is the OpenSID aspect
-    if (isOpenSIDAspek) {
-      for (const ind of indikatorOpenSID.filter((i) => i.aktif)) {
-        const penilaian = penilaianDesa.find(
-          (p) =>
-            p.indikator_id === ind.id && p.sumber_indikator === "opensid"
-        );
-        const skor = penilaian?.skor ?? 0;
-        totalBobot += ind.bobot_tambahan;
-        totalSkorTerbobot += skor * ind.bobot_tambahan;
-      }
-    }
-
-    // Weighted average for this aspect (0-100)
+    // Normalisasi ke 0-100: berapa persen dari bobot maks yang tercapai
     skorPerAspek[aspek.id] =
-      totalBobot > 0 ? totalSkorTerbobot / totalBobot : 0;
+      totalBobotMaks > 0 ? (totalSkor / totalBobotMaks) * 100 : 0;
   }
 
   return skorPerAspek;
@@ -127,8 +117,9 @@ export function calculateTotalSkor(
   let totalSkor = 0;
 
   for (const aspek of aspekList) {
-    const skorAspek = skorPerAspek[aspek.id] ?? 0;
-    totalSkor += skorAspek * (aspek.bobot_persen / 100);
+    const skorAspek = Number(skorPerAspek[aspek.id]) || 0;
+    const bobotPersen = Number(aspek.bobot_persen) || 0;
+    totalSkor += skorAspek * (bobotPersen / 100);
   }
 
   return Math.round(totalSkor * 10) / 10;

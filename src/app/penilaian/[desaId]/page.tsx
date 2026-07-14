@@ -27,11 +27,11 @@ export default function PenilaianFormPage() {
   const [indikatorUmum, setIndikatorUmum] = useState<any[]>([]);
   const [indikatorOpenSID, setIndikatorOpenSID] = useState<any[]>([]);
   
-  // State to hold answers
   const [answers, setAnswers] = useState<Record<string, { skor: number; catatan: string }>>({});
   
   // State for live calculation
   const [liveSkor, setLiveSkor] = useState(0);
+  const [liveSkorPerAspek, setLiveSkorPerAspek] = useState<Record<string, number>>({});
   const [liveKlasifikasi, setLiveKlasifikasi] = useState("Tidak Aktif");
 
   useEffect(() => {
@@ -137,6 +137,7 @@ export default function PenilaianFormPage() {
 
     const perAspek = calculateSkorPerAspek(penilaianMock, indikatorUmum, indikatorOpenSID, aspekList);
     const total = calculateTotalSkor(perAspek, aspekList);
+    setLiveSkorPerAspek(perAspek);
     setLiveSkor(total);
     setLiveKlasifikasi(getKlasifikasi(total));
   }
@@ -285,10 +286,17 @@ export default function PenilaianFormPage() {
 
           if (!hasContent) return null;
 
+          const skorAspek = Math.round(liveSkorPerAspek[aspek.id] || 0);
+
           return (
             <div key={aspek.id} style={{ borderBottom: "1px solid var(--border)" }}>
               <div style={{ padding: "16px 24px", background: "rgba(0,0,0,0.02)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <h3 style={{ fontSize: 16, fontWeight: 600 }}>{aspek.nama_aspek}</h3>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0 }}>{aspek.nama_aspek}</h3>
+                  <span className="badge" style={{ background: "rgba(59,130,246,0.1)", color: "#3b82f6" }}>
+                    Skor: {skorAspek}
+                  </span>
+                </div>
                 <span className="badge">Bobot: {aspek.bobot_persen}%</span>
               </div>
               
@@ -407,7 +415,7 @@ function IndicatorRow({
       
       <div style={{ width: 220, flexShrink: 0 }}>
         <div style={{ fontSize: 12, color: "var(--muted-foreground)", marginBottom: 8, textAlign: "right" }}>
-          Penilaian {isPilihan ? "(Pilih Opsi)" : "(0 - 100)"}
+          Penilaian {isPilihan ? "(Pilih Opsi)" : `(0 - ${ind.bobot})`}
         </div>
         
         {isPilihan ? (
@@ -448,8 +456,8 @@ function IndicatorRow({
               <input 
                 type="range" 
                 min="0" 
-                max="100" 
-                step="10"
+                max={ind.bobot} 
+                step="1"
                 style={{ flex: 1 }}
                 value={value}
                 onChange={(e) => onChangeSkor(Number(e.target.value))}
@@ -470,7 +478,7 @@ function IndicatorRow({
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "var(--muted-foreground)", marginTop: 4 }}>
               <span>0 (Buruk)</span>
-              <span>100 (Sempurna)</span>
+              <span>{ind.bobot} (Sempurna)</span>
             </div>
           </>
         )}
