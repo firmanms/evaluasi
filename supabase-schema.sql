@@ -60,6 +60,8 @@ create table master_website (
     versi varchar(50),
     jenis_versi varchar(50) default '-', -- Umum, Premium, Lainnya, -
     status_website varchar(50) default 'Aktif', -- Aktif, Tidak Aktif, Error, Maintenance, Diblokir, Lainnya
+    pic_nama varchar(150),
+    pic_no_tel varchar(20),
     updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 

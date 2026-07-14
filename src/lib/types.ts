@@ -54,6 +54,8 @@ export interface MasterWebsite {
   frekuensi_update: string;
   kendala: string;
   saran: string;
+  pic_nama?: string;
+  pic_no_tel?: string;
   updated_at: string;
 }
 

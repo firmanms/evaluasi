@@ -41,7 +41,9 @@ export default function ProfilWebsitePage() {
     saran: "",
     versi: "",
     jenis_versi: "-",
-    status_website: "Aktif"
+    status_website: "Aktif",
+    pic_nama: "",
+    pic_no_tel: ""
   });
 
   useEffect(() => {
@@ -120,7 +122,9 @@ export default function ProfilWebsitePage() {
       saran: "",
       versi: "",
       jenis_versi: "Umum",
-      status_website: "Online"
+      status_website: "Online",
+      pic_nama: "",
+      pic_no_tel: ""
     });
     setIsModalOpen(true);
   };
@@ -144,7 +148,9 @@ export default function ProfilWebsitePage() {
       saran: item.saran || "",
       versi: item.versi || "",
       jenis_versi: item.jenis_versi || "-",
-      status_website: item.status_website || "Aktif"
+      status_website: item.status_website || "Aktif",
+      pic_nama: item.pic_nama || "",
+      pic_no_tel: item.pic_no_tel || ""
     });
     setIsModalOpen(true);
   };
@@ -178,6 +184,8 @@ export default function ProfilWebsitePage() {
         versi: formData.versi,
         jenis_versi: formData.jenis_versi,
         status_website: formData.status_website,
+        pic_nama: formData.pic_nama,
+        pic_no_tel: formData.pic_no_tel,
         updated_at: new Date().toISOString()
       };
 
@@ -236,7 +244,9 @@ export default function ProfilWebsitePage() {
       versi: d.versi || "",
       jenis_versi: d.jenis_versi || "-",
       status_website: d.status_website || "Online",
-      nama_server: d.nama_server || ""
+      nama_server: d.nama_server || "",
+      pic_nama: d.pic_nama || "",
+      pic_no_tel: d.pic_no_tel || ""
     }));
     const ws = XLSX.utils.json_to_sheet(exportData);
     const wb = XLSX.utils.book_new();
@@ -304,6 +314,8 @@ export default function ProfilWebsitePage() {
             versi: row.versi ? String(row.versi) : null,
             jenis_versi: row.jenis_versi || "-",
             status_website: row.status_website || "Aktif",
+            pic_nama: row.pic_nama ? String(row.pic_nama) : null,
+            pic_no_tel: row.pic_no_tel ? String(row.pic_no_tel) : null,
           };
 
           if (!exists) {
@@ -527,6 +539,29 @@ export default function ProfilWebsitePage() {
                 className="form-input"
                 value={formData.no_wa}
                 onChange={(e) => setFormData({ ...formData, no_wa: e.target.value })}
+              />
+            </div>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+            <div className="form-group">
+              <label className="form-label">PIC Diskominfo (Nama)</label>
+              <input
+                type="text"
+                className="form-input"
+                placeholder="Nama PIC pendamping"
+                value={formData.pic_nama}
+                onChange={(e) => setFormData({ ...formData, pic_nama: e.target.value })}
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">PIC Diskominfo (No Telp/WA)</label>
+              <input
+                type="text"
+                className="form-input"
+                placeholder="0812..."
+                value={formData.pic_no_tel}
+                onChange={(e) => setFormData({ ...formData, pic_no_tel: e.target.value })}
               />
             </div>
           </div>
