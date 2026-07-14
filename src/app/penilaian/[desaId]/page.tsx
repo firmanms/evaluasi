@@ -33,6 +33,9 @@ export default function PenilaianFormPage() {
   const [liveSkor, setLiveSkor] = useState(0);
   const [liveSkorPerAspek, setLiveSkorPerAspek] = useState<Record<string, number>>({});
   const [liveKlasifikasi, setLiveKlasifikasi] = useState("Tidak Aktif");
+  
+  // Wizard state
+  const [currentStep, setCurrentStep] = useState(0);
 
   useEffect(() => {
     if (desaId && periodeId) {
@@ -67,8 +70,8 @@ export default function PenilaianFormPage() {
         supabase.from("desa").select("*, kecamatan(nama_kecamatan)").eq("id", desaId).single(),
         supabase.from("periode_evaluasi").select("*").eq("id", periodeId).single(),
         supabase.from("master_aspek").select("*").order("nama_aspek"),
-        supabase.from("master_indikator").select("*").eq("aktif", true),
-        supabase.from("master_indikator_opensid").select("*").eq("aktif", true),
+        supabase.from("master_indikator").select("*").eq("aktif", true).order("kode"),
+        supabase.from("master_indikator_opensid").select("*").eq("aktif", true).order("kode"),
         supabase.from("penilaian").select("*").eq("desa_id", desaId).eq("periode_id", periodeId)
       ]);
 
@@ -276,28 +279,74 @@ export default function PenilaianFormPage() {
         </div>
       </div>
 
+      {/* Wizard Step Indicator */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 24, overflowX: "auto", paddingBottom: 8 }}>
+        {aspekList.map((aspek, idx) => (
+          <div 
+            key={aspek.id} 
+            onClick={() => setCurrentStep(idx)}
+            style={{
+              padding: "10px 16px",
+              background: currentStep === idx ? "var(--primary)" : "var(--card)",
+              color: currentStep === idx ? "var(--primary-foreground)" : "var(--muted-foreground)",
+              border: "1px solid",
+              borderColor: currentStep === idx ? "var(--primary)" : "var(--border)",
+              borderRadius: 8,
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              transition: "all 0.2s"
+            }}
+          >
+            <div style={{ 
+              width: 24, height: 24, 
+              borderRadius: "50%", 
+              background: currentStep === idx ? "rgba(255,255,255,0.2)" : "var(--muted)", 
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 12
+            }}>
+              {idx + 1}
+            </div>
+            {aspek.nama_aspek}
+          </div>
+        ))}
+      </div>
+
       {/* Form Content */}
       <div className="card" style={{ padding: 0, overflow: "hidden" }}>
-        {aspekList.map((aspek) => {
+        {(() => {
+          if (aspekList.length === 0) return null;
+          const aspek = aspekList[currentStep];
+          
           // Group indicators per aspect
           const isOpenSID = aspek.nama_aspek.toLowerCase().includes("opensid");
-          const indUmumFilter = indikatorUmum.filter(i => i.aspek_id === aspek.id);
+          const indUmumFilter = indikatorUmum
+            .filter(i => i.aspek_id === aspek.id)
+            .sort((a, b) => a.kode.localeCompare(b.kode, undefined, { numeric: true, sensitivity: 'base' }));
           const hasContent = indUmumFilter.length > 0 || (isOpenSID && indikatorOpenSID.length > 0);
 
-          if (!hasContent) return null;
+          if (!hasContent) return (
+            <div style={{ padding: 40, textAlign: "center", color: "var(--muted-foreground)" }}>
+              Tidak ada indikator untuk aspek ini.
+            </div>
+          );
 
           const skorAspek = Math.round(liveSkorPerAspek[aspek.id] || 0);
 
           return (
-            <div key={aspek.id} style={{ borderBottom: "1px solid var(--border)" }}>
-              <div style={{ padding: "16px 24px", background: "rgba(0,0,0,0.02)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div key={aspek.id} className="animate-fade-in">
+              <div style={{ padding: "16px 24px", background: "rgba(0,0,0,0.02)", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--border)" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                   <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0 }}>{aspek.nama_aspek}</h3>
                   <span className="badge" style={{ background: "rgba(59,130,246,0.1)", color: "#3b82f6" }}>
-                    Skor: {skorAspek}
+                    Skor Aspek: {skorAspek}
                   </span>
                 </div>
-                <span className="badge">Bobot: {aspek.bobot_persen}%</span>
+                <span className="badge">Bobot Aspek: {aspek.bobot_persen}%</span>
               </div>
               
               <div style={{ padding: "0" }}>
@@ -322,7 +371,9 @@ export default function PenilaianFormPage() {
                   </div>
                 )}
                 
-                {isOpenSID && indikatorOpenSID.map((ind, i) => (
+                {isOpenSID && [...indikatorOpenSID]
+                  .sort((a, b) => a.kode.localeCompare(b.kode, undefined, { numeric: true, sensitivity: 'base' }))
+                  .map((ind, i, arr) => (
                   <IndicatorRow 
                     key={ind.id} 
                     ind={ind} 
@@ -331,33 +382,33 @@ export default function PenilaianFormPage() {
                     catatan={answers[`opensid_${ind.id}`]?.catatan ?? ""}
                     onChangeSkor={(val: number) => handleSkorChange("opensid", ind.id, val)}
                     onChangeCatatan={(val: string) => handleCatatanChange("opensid", ind.id, val)}
-                    isLast={i === indikatorOpenSID.length - 1}
+                    isLast={i === arr.length - 1}
                   />
                 ))}
               </div>
             </div>
           );
-        })}
+        })()}
       </div>
 
-      {/* Floating Action Bar */}
-      <div style={{
-        position: "fixed",
-        bottom: 0,
-        left: 260,
-        right: 0,
-        padding: "16px 32px",
-        background: "var(--card)",
-        borderTop: "1px solid var(--border)",
+      {/* Footer / Action Bar */}
+      <div className="card" style={{
+        marginTop: 24,
+        padding: "20px 24px",
         display: "flex",
         justifyContent: "space-between",
-        alignItems: "center",
-        zIndex: 10,
-        boxShadow: "0 -4px 12px rgba(0,0,0,0.05)"
+        alignItems: "center"
       }}>
-        <div style={{ fontSize: 14, color: "var(--muted-foreground)" }}>
-          Pastikan semua bukti atau catatan relevan telah diisi.
+        <div style={{ display: "flex", gap: 12 }}>
+          <button 
+            className="btn btn-secondary" 
+            onClick={() => setCurrentStep(prev => Math.max(0, prev - 1))}
+            disabled={currentStep === 0 || saving}
+          >
+            Sebelumnya
+          </button>
         </div>
+        
         <div style={{ display: "flex", gap: 12 }}>
           <button 
             className="btn btn-secondary" 
@@ -367,14 +418,26 @@ export default function PenilaianFormPage() {
             {saving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
             Simpan Draft
           </button>
-          <button 
-            className="btn btn-primary" 
-            onClick={() => handleSave("selesai")}
-            disabled={saving}
-          >
-            {saving ? <Loader2 className="animate-spin" size={18} /> : <CheckCircle2 size={18} />}
-            Selesai & Kunci Penilaian
-          </button>
+          
+          {currentStep < aspekList.length - 1 ? (
+            <button 
+              className="btn btn-primary" 
+              onClick={() => setCurrentStep(prev => Math.min(aspekList.length - 1, prev + 1))}
+              disabled={saving}
+            >
+              Selanjutnya
+              <ChevronRight size={18} />
+            </button>
+          ) : (
+            <button 
+              className="btn btn-primary" 
+              onClick={() => handleSave("selesai")}
+              disabled={saving}
+            >
+              {saving ? <Loader2 className="animate-spin" size={18} /> : <CheckCircle2 size={18} />}
+              Selesai & Kunci Penilaian
+            </button>
+          )}
         </div>
       </div>
     </div>
