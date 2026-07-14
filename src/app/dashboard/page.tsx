@@ -47,7 +47,7 @@ export default function DashboardPage() {
       // 1. Fetch Desa counts and Website Profiles
       const [desaCountRes, webProfileRes] = await Promise.all([
         supabase.from("desa").select("id", { count: "exact", head: true }),
-        supabase.from("master_website").select("status_website")
+        supabase.from("master_website").select("status_website, versi, jenis_versi, master_server(nama_server)")
       ]);
 
       const totalDesa = desaCountRes.count || 0;
@@ -56,16 +56,44 @@ export default function DashboardPage() {
       const totalWeb = webProfiles.length;
       let websiteOnline = 0;
       const statusWebCounts: Record<string, number> = {};
+      const serverCounts: Record<string, number> = {};
+      const versiCounts: Record<string, number> = {};
+      const jenisVersiCounts: Record<string, number> = {};
 
-      webProfiles.forEach(w => {
+      webProfiles.forEach((w: any) => {
         const s = w.status_website || "Online";
         if (s === "Online") websiteOnline++;
         statusWebCounts[s] = (statusWebCounts[s] || 0) + 1;
+
+        let srv = "Tidak Diketahui";
+        if (w.master_server) {
+           srv = Array.isArray(w.master_server) ? w.master_server[0]?.nama_server : w.master_server?.nama_server;
+        }
+        srv = srv || "Tidak Diketahui";
+        serverCounts[srv] = (serverCounts[srv] || 0) + 1;
+
+        const vr = w.versi || "Tidak Diketahui";
+        versiCounts[vr] = (versiCounts[vr] || 0) + 1;
+
+        const jv = w.jenis_versi || "Tidak Diketahui";
+        jenisVersiCounts[jv] = (jenisVersiCounts[jv] || 0) + 1;
       });
 
       const websiteOffline = totalWeb - websiteOnline;
 
       const webStatusData = Object.entries(statusWebCounts)
+        .map(([name, value]) => ({ name, value }))
+        .sort((a, b) => b.value - a.value);
+
+      const serverData = Object.entries(serverCounts)
+        .map(([name, value]) => ({ name, value }))
+        .sort((a, b) => b.value - a.value);
+
+      const versiData = Object.entries(versiCounts)
+        .map(([name, value]) => ({ name, value }))
+        .sort((a, b) => b.value - a.value);
+
+      const jenisVersiData = Object.entries(jenisVersiCounts)
         .map(([name, value]) => ({ name, value }))
         .sort((a, b) => b.value - a.value);
 
@@ -159,6 +187,9 @@ export default function DashboardPage() {
         websiteOnline,
         websiteOffline,
         webStatusData,
+        serverData,
+        versiData,
+        jenisVersiData,
         rataRataSkor,
         desaDinilai,
         desaBelumDinilai,
@@ -397,6 +428,96 @@ export default function DashboardPage() {
                     <div style={{ width: 40, height: 40, borderRadius: 10, background: `${color}15`, display: "flex", alignItems: "center", justifyContent: "center" }}>
                       <Globe size={18} color={color} />
                     </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                        <span style={{ fontSize: 13, fontWeight: 600 }}>{item.name}</span>
+                        <span style={{ fontSize: 13, fontWeight: 700 }}>{item.value} <span style={{ fontWeight: 400, color: "var(--muted-foreground)" }}>desa</span></span>
+                      </div>
+                      <div style={{ height: 6, background: "var(--border)", borderRadius: 3, overflow: "hidden" }}>
+                        <div style={{ width: `${(item.value / stats.totalWeb) * 100}%`, height: "100%", background: color, borderRadius: 3 }} />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div style={{ padding: "60px 0", textAlign: "center", color: "var(--muted-foreground)" }}>
+              Belum ada profil website yang diinput.
+            </div>
+          )}
+        </div>
+
+        {/* Server Data Card */}
+        <div className="card animate-fade-in">
+          <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 16 }}>
+            Distribusi Server
+          </h3>
+          {stats.serverData?.length > 0 ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {stats.serverData.map((item: any, idx: number) => (
+                <div key={idx} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                      <span style={{ fontSize: 13, fontWeight: 600 }}>{item.name}</span>
+                      <span style={{ fontSize: 13, fontWeight: 700 }}>{item.value} <span style={{ fontWeight: 400, color: "var(--muted-foreground)" }}>desa</span></span>
+                    </div>
+                    <div style={{ height: 6, background: "var(--border)", borderRadius: 3, overflow: "hidden" }}>
+                      <div style={{ width: `${(item.value / stats.totalWeb) * 100}%`, height: "100%", background: "#3b82f6", borderRadius: 3 }} />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={{ padding: "60px 0", textAlign: "center", color: "var(--muted-foreground)" }}>
+              Belum ada profil website yang diinput.
+            </div>
+          )}
+        </div>
+
+        {/* Versi OpenSID Card */}
+        <div className="card animate-fade-in">
+          <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 16 }}>
+            Versi OpenSID Terinstall
+          </h3>
+          {stats.versiData?.length > 0 ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {stats.versiData.map((item: any, idx: number) => (
+                <div key={idx} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                      <span style={{ fontSize: 13, fontWeight: 600 }}>{item.name}</span>
+                      <span style={{ fontSize: 13, fontWeight: 700 }}>{item.value} <span style={{ fontWeight: 400, color: "var(--muted-foreground)" }}>desa</span></span>
+                    </div>
+                    <div style={{ height: 6, background: "var(--border)", borderRadius: 3, overflow: "hidden" }}>
+                      <div style={{ width: `${(item.value / stats.totalWeb) * 100}%`, height: "100%", background: "#8b5cf6", borderRadius: 3 }} />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={{ padding: "60px 0", textAlign: "center", color: "var(--muted-foreground)" }}>
+              Belum ada profil website yang diinput.
+            </div>
+          )}
+        </div>
+
+        {/* Jenis Versi Card */}
+        <div className="card animate-fade-in">
+          <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 16 }}>
+            Jenis Versi
+          </h3>
+          {stats.jenisVersiData?.length > 0 ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {stats.jenisVersiData.map((item: any, idx: number) => {
+                let color = "#64748b";
+                if (item.name === "Premium") color = "#f59e0b";
+                if (item.name === "Umum") color = "#10b981";
+
+                return (
+                  <div key={idx} style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     <div style={{ flex: 1 }}>
                       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
                         <span style={{ fontSize: 13, fontWeight: 600 }}>{item.name}</span>

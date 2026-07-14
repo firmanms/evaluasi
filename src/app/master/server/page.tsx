@@ -174,6 +174,7 @@ export default function MasterServerPage() {
         const rows = XLSX.utils.sheet_to_json(ws) as any[];
         
         let imported = 0;
+        let updated = 0;
         
         for (const row of rows) {
           if (!row.nama_server) continue;
@@ -186,21 +187,26 @@ export default function MasterServerPage() {
           const namaServer = String(row.nama_server).trim();
           const exists = data.find(d => d.nama_server.toLowerCase() === namaServer.toLowerCase());
           
+          const payload = {
+            nama_server: namaServer,
+            lokasi_server: lokasi,
+            ip_privat: row.ip_privat ? String(row.ip_privat).trim() : null,
+            ip_publik: row.ip_publik ? String(row.ip_publik).trim() : null,
+            ram: row.ram ? String(row.ram).trim() : null,
+            processor: row.processor ? String(row.processor).trim() : null,
+            disk: row.disk ? String(row.disk).trim() : null
+          };
+
           if (!exists) {
-            await supabase.from("master_server").insert([{ 
-              nama_server: namaServer,
-              lokasi_server: lokasi,
-              ip_privat: row.ip_privat ? String(row.ip_privat).trim() : null,
-              ip_publik: row.ip_publik ? String(row.ip_publik).trim() : null,
-              ram: row.ram ? String(row.ram).trim() : null,
-              processor: row.processor ? String(row.processor).trim() : null,
-              disk: row.disk ? String(row.disk).trim() : null
-            }]);
+            await supabase.from("master_server").insert([payload]);
             imported++;
+          } else {
+            await supabase.from("master_server").update(payload).eq("id", exists.id);
+            updated++;
           }
         }
         
-        alert(`Berhasil mengimpor ${imported} server baru.`);
+        alert(`Berhasil memproses data: ${imported} server ditambahkan, ${updated} server diperbarui.`);
         fetchData();
       } catch (err) {
         console.error("Import error:", err);

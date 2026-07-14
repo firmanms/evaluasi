@@ -259,6 +259,7 @@ export default function ProfilWebsitePage() {
         const rows = XLSX.utils.sheet_to_json(ws) as any[];
         
         let imported = 0;
+        let updated = 0;
         
         for (const row of rows) {
           if (!row.nama_desa || !row.nama_kecamatan) continue;
@@ -278,39 +279,44 @@ export default function ProfilWebsitePage() {
           // Check if profile exists
           const exists = data.find(d => d.desa_id === desa.id);
           
-          if (!exists) {
-            // Match server
-            let server_id = null;
-            if (row.nama_server) {
-              const srvName = String(row.nama_server).trim();
-              const srv = serverList.find(s => s.nama_server.toLowerCase() === srvName.toLowerCase());
-              if (srv) server_id = srv.id;
-            }
+          // Match server
+          let server_id = null;
+          if (row.nama_server) {
+            const srvName = String(row.nama_server).trim();
+            const srv = serverList.find(s => s.nama_server.toLowerCase() === srvName.toLowerCase());
+            if (srv) server_id = srv.id;
+          }
 
-            await supabase.from("master_website").insert([{ 
-              desa_id: desa.id,
-              server_id,
-              operator: row.operator ? String(row.operator) : null,
-              no_wa: row.no_wa ? String(row.no_wa) : null,
-              email: row.email ? String(row.email) : null,
-              tahun_mulai_gunakan: row.tahun_mulai_gunakan ? parseInt(row.tahun_mulai_gunakan) : new Date().getFullYear(),
-              jumlah_operator: row.jumlah_operator ? parseInt(row.jumlah_operator) : 1,
-              perangkat_digunakan: row.perangkat_digunakan || "Laptop",
-              kecepatan_internet: row.kecepatan_internet || "10-20 Mbps",
-              pengelola_website: row.pengelola_website || "Operator Desa",
-              frekuensi_update: row.frekuensi_update || "Mingguan",
-              kendala: row.kendala ? String(row.kendala) : null,
-              saran: row.saran ? String(row.saran) : null,
-              versi: row.versi ? String(row.versi) : null,
-              jenis_versi: row.jenis_versi || "Umum",
-              status_website: row.status_website || "Online",
-              updated_at: new Date().toISOString()
-            }]);
+          const payloadData = {
+            desa_id: desa.id,
+            server_id,
+            operator: row.operator ? String(row.operator) : null,
+            no_wa: row.no_wa ? String(row.no_wa) : null,
+            email: row.email ? String(row.email) : null,
+            tahun_mulai_gunakan: row.tahun_mulai_gunakan ? parseInt(row.tahun_mulai_gunakan) : new Date().getFullYear(),
+            jumlah_operator: row.jumlah_operator ? parseInt(row.jumlah_operator) : 1,
+            perangkat_digunakan: row.perangkat_digunakan || "Laptop",
+            kecepatan_internet: row.kecepatan_internet || "10-20 Mbps",
+            pengelola_website: row.pengelola_website || "Operator Desa",
+            frekuensi_update: row.frekuensi_update || "Bulanan",
+            kendala: row.kendala ? String(row.kendala) : null,
+            saran: row.saran ? String(row.saran) : null,
+            versi: row.versi ? String(row.versi) : null,
+            jenis_versi: row.jenis_versi || "-",
+            status_website: row.status_website || "Aktif",
+          };
+
+          if (!exists) {
+            await supabase.from("master_website").insert([payloadData]);
             imported++;
+          } else {
+            // Update existing data
+            await supabase.from("master_website").update(payloadData).eq("id", exists.id);
+            updated++;
           }
         }
         
-        alert(`Berhasil mengimpor ${imported} profil website baru.`);
+        alert(`Berhasil memproses data: ${imported} profil ditambahkan, ${updated} profil diperbarui.`);
         fetchData();
       } catch (err) {
         console.error("Import error:", err);

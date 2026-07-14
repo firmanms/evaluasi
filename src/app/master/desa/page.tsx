@@ -178,9 +178,10 @@ export default function DesaPage() {
         const wsname = wb.SheetNames[0];
         const ws = wb.Sheets[wsname];
         const rows = XLSX.utils.sheet_to_json(ws) as any[];
-
+        
         let imported = 0;
-
+        let updated = 0;
+        
         for (const row of rows) {
           if (!row.nama_desa || !row.nama_kecamatan) continue;
           const namaDesa = String(row.nama_desa).trim();
@@ -201,19 +202,23 @@ export default function DesaPage() {
             d.kecamatan_id === kec.id
           );
 
+          const payload = {
+            nama_desa: namaDesa,
+            jenis,
+            kecamatan_id: kec.id,
+            url_website,
+          };
+
           if (!exists) {
-            await supabase.from("desa").insert([{
-              nama_desa: namaDesa,
-              jenis,
-              kecamatan_id: kec.id,
-              url_website,
-              status_aktif: true
-            }]);
+            await supabase.from("desa").insert([{...payload, status_aktif: true}]);
             imported++;
+          } else {
+            await supabase.from("desa").update(payload).eq("id", exists.id);
+            updated++;
           }
         }
 
-        alert(`Berhasil mengimpor ${imported} desa/kelurahan baru.`);
+        alert(`Berhasil memproses data: ${imported} desa ditambahkan, ${updated} desa diperbarui.`);
         fetchData();
       } catch (err) {
         console.error("Import error:", err);
