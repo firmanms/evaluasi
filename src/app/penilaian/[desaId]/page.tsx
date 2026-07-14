@@ -394,30 +394,24 @@ function IndicatorRow({
   const pilihan = ind.pilihan_jawaban || [];
 
   return (
-    <div style={{ padding: "20px 24px", borderBottom: isLast ? "none" : "1px solid var(--border)", display: "flex", gap: 24 }}>
-      <div style={{ flex: 1 }}>
-        <div style={{ display: "flex", gap: 8, marginBottom: 4 }}>
-          <span className="badge" style={{ background: "var(--muted)" }}>{ind.kode}</span>
-          <span style={{ fontWeight: 500 }}>{ind.nama_indikator}</span>
-        </div>
-        <div style={{ fontSize: 13, color: "var(--muted-foreground)", marginBottom: 12, lineHeight: 1.5 }}>
-          {ind.deskripsi || "Tidak ada deskripsi rinci."}
-        </div>
-        <input 
-          type="text" 
-          placeholder="Catatan evaluator / link bukti pendukung..." 
-          className="form-input" 
-          style={{ width: "100%", fontSize: 13 }}
-          value={catatan}
-          onChange={(e) => onChangeCatatan(e.target.value)}
-        />
+    <div style={{ padding: "20px 24px", borderBottom: isLast ? "none" : "1px solid var(--border)" }}>
+      {/* Kode + Nama Indikator */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 4 }}>
+        <span className="badge" style={{ background: "var(--muted)" }}>{ind.kode}</span>
+        <span style={{ fontWeight: 500 }}>{ind.nama_indikator}</span>
       </div>
-      
-      <div style={{ width: 220, flexShrink: 0 }}>
-        <div style={{ fontSize: 12, color: "var(--muted-foreground)", marginBottom: 8, textAlign: "right" }}>
+
+      {/* Deskripsi */}
+      <div style={{ fontSize: 13, color: "var(--muted-foreground)", marginBottom: 16, lineHeight: 1.5 }}>
+        {ind.deskripsi || "Tidak ada deskripsi rinci."}
+      </div>
+
+      {/* Jawaban / Penilaian */}
+      <div style={{ marginBottom: 12 }}>
+        <div style={{ fontSize: 12, color: "var(--muted-foreground)", marginBottom: 8, fontWeight: 500 }}>
           Penilaian {isPilihan ? "(Pilih Opsi)" : `(0 - ${ind.bobot})`}
         </div>
-        
+
         {isPilihan ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {pilihan.map((opt: any, idx: number) => (
@@ -427,12 +421,13 @@ function IndicatorRow({
                   display: "flex", 
                   alignItems: "center", 
                   gap: 8, 
-                  padding: "8px 12px", 
+                  padding: "8px 14px", 
                   border: "1px solid var(--border)", 
                   borderRadius: 6,
                   cursor: "pointer",
                   background: value === opt.nilai ? "rgba(59,130,246,0.05)" : "transparent",
-                  borderColor: value === opt.nilai ? "#3b82f6" : "var(--border)"
+                  borderColor: value === opt.nilai ? "#3b82f6" : "var(--border)",
+                  transition: "all 0.15s ease"
                 }}
               >
                 <input 
@@ -445,13 +440,13 @@ function IndicatorRow({
                 />
                 <div style={{ display: "flex", justifyContent: "space-between", flex: 1, fontSize: 13 }}>
                   <span>{opt.label}</span>
-                  <span style={{ fontWeight: 600, color: "var(--muted-foreground)" }}>({opt.nilai})</span>
+                  <span style={{ fontWeight: 600, color: "var(--muted-foreground)" }}>({opt.nilai} poin)</span>
                 </div>
               </label>
             ))}
           </div>
         ) : (
-          <>
+          <div style={{ maxWidth: 400 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <input 
                 type="range" 
@@ -480,9 +475,19 @@ function IndicatorRow({
               <span>0 (Buruk)</span>
               <span>{ind.bobot} (Sempurna)</span>
             </div>
-          </>
+          </div>
         )}
       </div>
+
+      {/* Catatan */}
+      <input 
+        type="text" 
+        placeholder="Catatan evaluator / link bukti pendukung..." 
+        className="form-input" 
+        style={{ width: "100%", fontSize: 13 }}
+        value={catatan}
+        onChange={(e) => onChangeCatatan(e.target.value)}
+      />
     </div>
   );
 }
