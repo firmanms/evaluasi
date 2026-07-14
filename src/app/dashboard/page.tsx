@@ -599,8 +599,8 @@ function StatCard({
   iconBg: string;
   value: string | number;
   label: string;
-  sub: string;
-  subColor: string;
+  sub?: string;
+  subColor?: string;
 }) {
   return (
     <div className="stat-card animate-fade-in">
@@ -610,9 +610,11 @@ function StatCard({
       <div>
         <div className="stat-value">{value}</div>
         <div className="stat-label">{label}</div>
-        <div style={{ fontSize: 12, color: subColor, marginTop: 4, fontWeight: 500 }}>
-          {sub}
-        </div>
+        {sub && (
+          <div style={{ fontSize: 12, color: subColor || "var(--muted-foreground)", marginTop: 4, fontWeight: 500 }}>
+            {sub}
+          </div>
+        )}
       </div>
     </div>
   );
