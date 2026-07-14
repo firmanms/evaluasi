@@ -45,20 +45,31 @@ export default function LaporanPage() {
 
       const active = periodeRes.data?.find(p => p.status === "berjalan") || periodeRes.data?.[0];
 
-      const formattedDesa = (desaRes.data || []).map(d => ({
-        ...d,
-        nama_kecamatan: d.kecamatan?.nama_kecamatan || "-",
-        totalSkor: null as number | null,
-        klasifikasi: null as string | null,
-        statusEvaluasi: "belum" as string,
-      }));
+      let hasilData: any[] = [];
+      if (active) {
+        const { data: hasil } = await supabase
+          .from("hasil_evaluasi")
+          .select("desa_id, total_skor, klasifikasi, status")
+          .eq("periode_id", active.id);
+        hasilData = hasil || [];
+      }
+
+      const formattedDesa = (desaRes.data || []).map(d => {
+        const ev = hasilData.find(h => h.desa_id === d.id);
+        return {
+          ...d,
+          nama_kecamatan: d.kecamatan?.nama_kecamatan || "-",
+          statusEvaluasi: ev?.status || "belum",
+          totalSkor: ev?.total_skor ?? null,
+          klasifikasi: ev?.klasifikasi ?? null,
+        };
+      });
       setDesaList(formattedDesa);
 
       if (active) {
         setActivePeriodeId(active.id);
-      } else {
-        setLoading(false);
       }
+      setLoading(false);
     } catch (err: any) {
       console.error("Init Error:", err);
       setError("Gagal memuat data referensi.");

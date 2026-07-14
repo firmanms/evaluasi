@@ -44,22 +44,34 @@ export default function PenilaianPage() {
       setKecamatanData(kecRes.data || []);
       
       const active = periodeRes.data?.find(p => p.status === "berjalan") || periodeRes.data?.[0];
-      
+
+      let hasilData: any[] = [];
+      if (active) {
+        const { data: hasil } = await supabase
+          .from("hasil_evaluasi")
+          .select("desa_id, total_skor, klasifikasi, status")
+          .eq("periode_id", active.id);
+        hasilData = hasil || [];
+      }
+
       // Simpan referensi desa dasar
-      const formattedDesa = (desaRes.data || []).map(d => ({
-        ...d,
-        nama_kecamatan: d.kecamatan?.nama_kecamatan || "-",
-        sudahDinilai: false,
-        totalSkor: null,
-        klasifikasi: null
-      }));
+      const formattedDesa = (desaRes.data || []).map(d => {
+        const ev = hasilData.find(h => h.desa_id === d.id);
+        return {
+          ...d,
+          nama_kecamatan: d.kecamatan?.nama_kecamatan || "-",
+          sudahDinilai: !!ev,
+          statusEvaluasi: ev?.status || "belum", // belum, draft, selesai
+          totalSkor: ev?.total_skor || null,
+          klasifikasi: ev?.klasifikasi || null
+        };
+      });
       setDesaList(formattedDesa);
 
       if (active) {
         setActivePeriodeId(active.id);
-      } else {
-        setLoading(false);
       }
+      setLoading(false);
     } catch (err: any) {
       console.error("Init Error:", err);
       setError("Gagal memuat data referensi.");
