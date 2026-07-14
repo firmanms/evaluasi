@@ -2,7 +2,7 @@ import type { Klasifikasi, Penilaian, MasterIndikator, MasterIndikatorOpenSID, M
 import { generateId } from "./utils";
 
 /**
- * Scoring Engine — Monev OpenSID
+ * Scoring Engine — Monev Web Desa
  *
  * Calculates evaluation scores per village based on:
  * 1. Score per indicator (0–100)

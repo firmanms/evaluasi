@@ -82,7 +82,7 @@ export function Sidebar() {
           </div>
           <div style={{ overflow: "hidden" }}>
             <div style={{ fontSize: 15, fontWeight: 700, color: "#fff", whiteSpace: "nowrap" }}>
-              Monev OpenSID
+              Monev Web Desa
             </div>
             <div style={{ fontSize: 11, color: "#64748b", whiteSpace: "nowrap" }}>
               Kabupaten Bandung

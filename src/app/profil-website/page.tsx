@@ -109,14 +109,14 @@ export default function ProfilWebsitePage() {
       tahun_mulai_gunakan: new Date().getFullYear(),
       jumlah_operator: 1,
       perangkat_digunakan: "Laptop",
-      kecepatan_internet: "5-10 Mbps",
+      kecepatan_internet: "10-20 Mbps",
       pengelola_website: "Operator Desa",
       frekuensi_update: "Mingguan",
       kendala: "",
       saran: "",
       versi: "",
-      jenis_versi: "-",
-      status_website: "Aktif"
+      jenis_versi: "Umum",
+      status_website: "Online"
     });
     setIsModalOpen(true);
   };
@@ -281,7 +281,7 @@ export default function ProfilWebsitePage() {
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, fontSize: 13 }}>
                 <InfoItem icon={<Server size={14} />} label="Server Hosting" value={item.nama_server ? `${item.nama_server} (${item.lokasi_server})` : "-"} />
-                <InfoItem icon={<Globe size={14} />} label="Status Website" value={item.status_website || "Aktif"} />
+                <InfoItem icon={<Globe size={14} />} label="Status Website" value={item.status_website || "Online"} />
                 <InfoItem icon={<Monitor size={14} />} label="Versi OpenSID" value={item.versi ? `${item.versi} (${item.jenis_versi || "-"})` : "-"} />
                 <InfoItem icon={<User size={14} />} label="Operator" value={item.operator || "-"} />
                 <InfoItem icon={<Phone size={14} />} label="WhatsApp" value={item.no_wa || "-"} />
@@ -506,8 +506,8 @@ export default function ProfilWebsitePage() {
                 value={formData.status_website}
                 onChange={(e) => setFormData({ ...formData, status_website: e.target.value })}
               >
-                <option value="Aktif">Aktif</option>
-                <option value="Tidak Aktif">Tidak Aktif</option>
+                <option value="Online">Online</option>
+                <option value="Offline">Offline</option>
                 <option value="Error">Error / Rusak</option>
                 <option value="Maintenance">Sedang Maintenance</option>
                 <option value="Diblokir">Diblokir (Suspended)</option>

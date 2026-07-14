@@ -44,15 +44,30 @@ export default function DashboardPage() {
     setLoading(true);
     setError("");
     try {
-      // 1. Fetch Desa counts
-      const [desaCountRes, activeDesaCountRes] = await Promise.all([
+      // 1. Fetch Desa counts and Website Profiles
+      const [desaCountRes, webProfileRes] = await Promise.all([
         supabase.from("desa").select("id", { count: "exact", head: true }),
-        supabase.from("desa").select("id", { count: "exact", head: true }).eq("status_aktif", true)
+        supabase.from("master_website").select("status_website")
       ]);
 
       const totalDesa = desaCountRes.count || 0;
-      const websiteAktif = activeDesaCountRes.count || 0;
-      const websiteTidakAktif = totalDesa - websiteAktif;
+      
+      const webProfiles = webProfileRes.data || [];
+      const totalWeb = webProfiles.length;
+      let websiteOnline = 0;
+      const statusWebCounts: Record<string, number> = {};
+      
+      webProfiles.forEach(w => {
+        const s = w.status_website || "Online";
+        if (s === "Online") websiteOnline++;
+        statusWebCounts[s] = (statusWebCounts[s] || 0) + 1;
+      });
+
+      const websiteOffline = totalWeb - websiteOnline;
+
+      const webStatusData = Object.entries(statusWebCounts)
+        .map(([name, value]) => ({ name, value }))
+        .sort((a, b) => b.value - a.value);
 
       // 2. Fetch Hasil Evaluasi for selected period
       const { data: hasilData, error: hErr } = await supabase
@@ -140,8 +155,10 @@ export default function DashboardPage() {
 
       setStats({
         totalDesa,
-        websiteAktif,
-        websiteTidakAktif,
+        totalWeb,
+        websiteOnline,
+        websiteOffline,
+        webStatusData,
         rataRataSkor,
         desaDinilai,
         desaBelumDinilai,
@@ -210,10 +227,10 @@ export default function DashboardPage() {
         <StatCard
           icon={<CheckCircle2 size={22} />}
           iconBg="linear-gradient(135deg, #10b981, #059669)"
-          value={`${stats.totalDesa > 0 ? Math.round((stats.websiteAktif / stats.totalDesa) * 100) : 0}%`}
-          label="Persentase Website Aktif"
-          sub={`${stats.websiteTidakAktif} tidak aktif`}
-          subColor="#ef4444"
+          value={`${stats.totalWeb > 0 ? Math.round((stats.websiteOnline / stats.totalWeb) * 100) : 0}%`}
+          label="Persentase Website Online"
+          sub={`${stats.websiteOnline} dari ${stats.totalWeb} website`}
+          subColor="#10b981"
         />
         <StatCard
           icon={<Award size={22} />}
@@ -357,6 +374,45 @@ export default function DashboardPage() {
           ) : (
             <div style={{ padding: "60px 0", textAlign: "center", color: "var(--muted-foreground)" }}>
               Belum ada data tren yang terekam.
+            </div>
+          )}
+        </div>
+
+        {/* Status Website Card */}
+        <div className="card animate-fade-in">
+          <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 16 }}>
+            Status Akses Website
+          </h3>
+          {stats.webStatusData?.length > 0 ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {stats.webStatusData.map((item: any, idx: number) => {
+                let color = "#64748b";
+                if (item.name === "Online") color = "#10b981";
+                if (item.name === "Offline") color = "#ef4444";
+                if (item.name === "Error") color = "#f97316";
+                if (item.name === "Maintenance") color = "#f59e0b";
+                
+                return (
+                  <div key={idx} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <div style={{ width: 40, height: 40, borderRadius: 10, background: `${color}15`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <Globe size={18} color={color} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                        <span style={{ fontSize: 13, fontWeight: 600 }}>{item.name}</span>
+                        <span style={{ fontSize: 13, fontWeight: 700 }}>{item.value} <span style={{ fontWeight: 400, color: "var(--muted-foreground)" }}>desa</span></span>
+                      </div>
+                      <div style={{ height: 6, background: "var(--border)", borderRadius: 3, overflow: "hidden" }}>
+                        <div style={{ width: `${(item.value / stats.totalWeb) * 100}%`, height: "100%", background: color, borderRadius: 3 }} />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div style={{ padding: "60px 0", textAlign: "center", color: "var(--muted-foreground)" }}>
+              Belum ada profil website yang diinput.
             </div>
           )}
         </div>

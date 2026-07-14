@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* ========== DESIGN TOKENS — Monev OpenSID ========== */
+/* ========== DESIGN TOKENS — Monev Web Desa ========== */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

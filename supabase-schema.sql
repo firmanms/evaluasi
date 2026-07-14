@@ -1,6 +1,6 @@
 -- ==========================================
 -- SKEMA DATABASE SUPABASE (POSTGRESQL)
--- APLIKASI MONEV OPENSID & WEBSITE DESA
+-- APLIKASI Monev Web Desa & WEBSITE DESA
 -- KABUPATEN BANDUNG
 -- ==========================================
 

@@ -1,5 +1,5 @@
 // ============================================================
-// Monev OpenSID — Type Definitions
+// Monev Web Desa — Type Definitions
 // ============================================================
 
 export type JenisDesa = "desa" | "kelurahan";

@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Monev OpenSID — Kabupaten Bandung",
+  title: "Monev Web Desa — Kabupaten Bandung",
   description:
     "Aplikasi Monitoring & Evaluasi Pemanfaatan Sistem Informasi Desa (OpenSID) dan Website Desa Kabupaten Bandung",
 };

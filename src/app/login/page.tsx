@@ -41,13 +41,13 @@ export default function LoginPage() {
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "var(--background)" }}>
-      
+
       {/* Left Panel: Branding & Landing Area (Hidden on small screens) */}
-      <div 
-        className="hidden md:flex" 
-        style={{ 
-          flex: 1.2, 
-          background: "linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)", 
+      <div
+        className="hidden md:flex"
+        style={{
+          flex: 1.2,
+          background: "linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)",
           position: "relative",
           flexDirection: "column",
           justifyContent: "space-between",
@@ -65,13 +65,13 @@ export default function LoginPage() {
           <div style={{ width: 40, height: 40, borderRadius: 10, background: "linear-gradient(135deg, #3b82f6, #10b981)", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <Activity size={20} color="white" />
           </div>
-          <span style={{ fontSize: 20, fontWeight: 700, letterSpacing: "-0.02em" }}>Monev OpenSID</span>
+          <span style={{ fontSize: 20, fontWeight: 700, letterSpacing: "-0.02em" }}>Monev Web Desa</span>
         </div>
 
         {/* Main Value Proposition */}
         <div style={{ zIndex: 1, maxWidth: 500 }}>
           <h1 style={{ fontSize: 42, fontWeight: 800, lineHeight: 1.2, marginBottom: 24, letterSpacing: "-0.02em" }}>
-            Membangun Desa <br/>
+            Membangun Desa <br />
             <span style={{ background: "linear-gradient(to right, #60a5fa, #34d399)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Lebih Cerdas & Terhubung</span>
           </h1>
           <p style={{ fontSize: 16, lineHeight: 1.6, color: "rgba(255,255,255,0.7)", marginBottom: 40 }}>
@@ -107,12 +107,12 @@ export default function LoginPage() {
       </div>
 
       {/* Right Panel: Login Form */}
-      <div 
-        style={{ 
-          flex: 1, 
-          display: "flex", 
-          alignItems: "center", 
-          justifyContent: "center", 
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
           padding: 24,
           background: "var(--card)",
           position: "relative"
@@ -162,18 +162,18 @@ export default function LoginPage() {
               />
             </div>
 
-            <button 
-              type="submit" 
-              className="btn btn-primary" 
-              style={{ 
-                width: "100%", 
-                justifyContent: "center", 
-                padding: "14px 0", 
-                marginTop: 8, 
-                fontSize: 14, 
+            <button
+              type="submit"
+              className="btn btn-primary"
+              style={{
+                width: "100%",
+                justifyContent: "center",
+                padding: "14px 0",
+                marginTop: 8,
+                fontSize: 14,
                 fontWeight: 600,
                 boxShadow: "0 4px 12px rgba(59, 130, 246, 0.25)"
-              }} 
+              }}
               disabled={loading}
             >
               {loading ? <Loader2 className="animate-spin" size={18} /> : "Masuk ke Dashboard"}
@@ -184,7 +184,7 @@ export default function LoginPage() {
           <div className="md:hidden" style={{ textAlign: "center", marginTop: 48 }}>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 8, opacity: 0.5 }}>
               <Activity size={16} />
-              <span style={{ fontSize: 12, fontWeight: 600 }}>Monev OpenSID</span>
+              <span style={{ fontSize: 12, fontWeight: 600 }}>Monev Web Desa</span>
             </div>
           </div>
         </div>

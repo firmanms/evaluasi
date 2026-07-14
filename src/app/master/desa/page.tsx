@@ -366,7 +366,7 @@ export default function DesaPage() {
               />
             </div>
 
-            <div className="form-group" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div className="form-group" style={{ display: "none" }}>
               <input 
                 type="checkbox"
                 id="statusAktif"

@@ -110,7 +110,7 @@ export default function LandingPage() {
           <div style={{ width: 36, height: 36, borderRadius: 8, background: "linear-gradient(135deg, #3b82f6, #10b981)", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <Activity size={18} color="white" />
           </div>
-          <span style={{ fontSize: 18, fontWeight: 700 }}>Monev OpenSID</span>
+          <span style={{ fontSize: 18, fontWeight: 700 }}>Monev Web Desa</span>
         </div>
         {/* Tidak ada tombol login eksplisit sesuai permintaan (bisa diakses via url /login) */}
       </nav>
