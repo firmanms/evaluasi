@@ -110,7 +110,7 @@ body {
   background: var(--sidebar);
   color: var(--sidebar-foreground);
   width: 260px;
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   transition: width 0.3s ease;
@@ -149,6 +149,7 @@ body {
   flex: 1;
   padding: 12px 8px;
   overflow-y: auto;
+  min-height: 0;
 }
 
 .sidebar-section-title {
