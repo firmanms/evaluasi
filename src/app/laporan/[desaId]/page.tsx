@@ -151,7 +151,7 @@ export default function RaporDesaPage() {
 
         {/* Info Desa */}
         <div className="card" style={{ marginBottom: 24 }}>
-          <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 16, color: "var(--muted-foreground)", textTransform: "uppercase", letterSpacing: 1, fontSize: 12 }}>
+          <h3 style={{ fontWeight: 600, marginBottom: 16, color: "var(--muted-foreground)", textTransform: "uppercase", letterSpacing: 1, fontSize: 12 }}>
             Informasi Desa
           </h3>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 20 }}>

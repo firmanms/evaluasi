@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { FileText, Search, Eye, Loader2, AlertTriangle, ChevronRight, BarChart3, MapPin, Award, TrendingUp, TrendingDown, Download } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
-import { getKlasifikasiColor } from "@/lib/scoring-engine";
+import { getKlasifikasiColor, getKlasifikasi } from "@/lib/scoring-engine";
 
 type TabId = "semua" | "kecamatan" | "klasifikasi" | "rapor-desa";
 
@@ -408,7 +408,7 @@ export default function LaporanPage() {
                     <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
                       <div style={{ textAlign: "center" }}>
                         <div style={{ fontSize: 11, color: "var(--muted-foreground)" }}>Rata-rata</div>
-                        <div style={{ fontSize: 18, fontWeight: 800, color: getKlasifikasiColor(getKlasifikasiLabel(kec.avg)) }}>{kec.avg.toFixed(1)}</div>
+                        <div style={{ fontSize: 18, fontWeight: 800, color: getKlasifikasiColor(getKlasifikasi(kec.avg)) }}>{kec.avg.toFixed(1)}</div>
                       </div>
                       <div style={{ textAlign: "center" }}>
                         <div style={{ fontSize: 11, color: "var(--muted-foreground)" }}>Tertinggi</div>
