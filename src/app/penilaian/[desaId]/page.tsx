@@ -145,6 +145,10 @@ export default function PenilaianFormPage() {
     setLiveKlasifikasi(getKlasifikasi(total));
   }
 
+  useEffect(() => {
+    calculateLive();
+  }, [answers, indikatorUmum, indikatorOpenSID, aspekList]);
+
   async function handleSave(status: "draft" | "selesai") {
     if (!desaId || !periodeId) return;
 
