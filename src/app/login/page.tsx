@@ -1,24 +1,47 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, AlertTriangle, LogIn, MonitorSmartphone, Activity, ShieldCheck } from "lucide-react";
+import { Loader2, AlertTriangle, LogIn, MonitorSmartphone, Activity, ShieldCheck, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 export default function LoginPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+
+  const [captcha, setCaptcha] = useState({ num1: 0, num2: 0 });
+  const [captchaInput, setCaptchaInput] = useState("");
 
   const [formData, setFormData] = useState({
     email: "admin@diskominfo.bandungkab.go.id",
-    password: "AdminMonev123!"
+    password: "AdminMonev123"
   });
+
+  const generateCaptcha = () => {
+    setCaptcha({
+      num1: Math.floor(Math.random() * 10) + 1,
+      num2: Math.floor(Math.random() * 10) + 1,
+    });
+    setCaptchaInput("");
+  };
+
+  useEffect(() => {
+    generateCaptcha();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
+
+    if (captchaInput !== (captcha.num1 + captcha.num2).toString()) {
+      setError("Jawaban perhitungan salah. Silakan coba lagi.");
+      generateCaptcha();
+      setLoading(false);
+      return;
+    }
 
     try {
       const { data, error: authError } = await supabase.auth.signInWithPassword({
@@ -34,6 +57,7 @@ export default function LoginPage() {
     } catch (err: any) {
       console.error("Login Error:", err);
       setError("Email atau kata sandi salah. Jika ini pertama kali, jalankan SQL Script Super Admin terlebih dahulu.");
+      generateCaptcha();
     } finally {
       setLoading(false);
     }
@@ -75,7 +99,7 @@ export default function LoginPage() {
             <span style={{ background: "linear-gradient(to right, #60a5fa, #34d399)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Lebih Cerdas & Terhubung</span>
           </h1>
           <p style={{ fontSize: 16, lineHeight: 1.6, color: "rgba(255,255,255,0.7)", marginBottom: 40 }}>
-            Platform monitoring dan evaluasi terpadu untuk pemanfaatan Sistem Informasi Desa (OpenSID) dan pengelolaan Website Desa di Kabupaten Bandung.
+            Platform monitoring dan evaluasi terpadu untuk pemanfaatan dan pengelolaan Website Desa di Kabupaten Bandung.
           </p>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
@@ -151,13 +175,48 @@ export default function LoginPage() {
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
                 <label className="form-label" style={{ margin: 0, fontSize: 13, fontWeight: 600 }}>Kata Sandi</label>
               </div>
+              <div style={{ position: "relative" }}>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  className="form-input"
+                  required
+                  placeholder="••••••••••••"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  style={{ padding: "12px 16px", paddingRight: 40, background: "var(--background)", border: "1px solid var(--border)", fontSize: 14 }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{
+                    position: "absolute",
+                    right: 12,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    color: "var(--muted-foreground)",
+                    padding: 0,
+                    display: "flex",
+                  }}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label" style={{ fontSize: 13, fontWeight: 600 }}>
+                Berapa hasil dari {captcha.num1} + {captcha.num2}?
+              </label>
               <input
-                type="password"
+                type="text"
                 className="form-input"
                 required
-                placeholder="••••••••••••"
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                placeholder="Masukkan hasil perhitungan"
+                value={captchaInput}
+                onChange={(e) => setCaptchaInput(e.target.value)}
                 style={{ padding: "12px 16px", background: "var(--background)", border: "1px solid var(--border)", fontSize: 14 }}
               />
             </div>
