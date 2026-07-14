@@ -80,7 +80,8 @@ export default function PenilaianFormPage() {
 
       setDesa(desaRes.data);
       setPeriode(periodeRes.data);
-      setAspekList(aspekRes.data || []);
+      // Filter out inactive aspects, treating undefined as true for backwards compatibility
+      setAspekList((aspekRes.data || []).filter((a: any) => a.status_aktif !== false));
       setIndikatorUmum(indUmumRes.data || []);
       setIndikatorOpenSID(indOSRes.data || []);
 

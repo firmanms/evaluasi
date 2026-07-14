@@ -68,6 +68,7 @@ create table master_aspek (
     id uuid default gen_random_uuid() primary key,
     nama_aspek varchar(100) not null unique, -- Ketersediaan Layanan, Konten, Pemanfaatan OpenSID, Tata Kelola
     bobot_persen numeric(5, 2) not null check (bobot_persen >= 0 and bobot_persen <= 100),
+    status_aktif boolean default true,
     created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 

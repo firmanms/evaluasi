@@ -61,6 +61,7 @@ export interface MasterAspek {
   id: string;
   nama_aspek: string;
   bobot_persen: number;
+  status_aktif?: boolean;
 }
 
 export interface PilihanJawaban {

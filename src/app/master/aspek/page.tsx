@@ -19,6 +19,7 @@ export default function AspekPage() {
   // Form State
   const [namaAspek, setNamaAspek] = useState("");
   const [bobotPersen, setBobotPersen] = useState<number>(0);
+  const [statusAktif, setStatusAktif] = useState(true);
   const [formLoading, setFormLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -48,6 +49,7 @@ export default function AspekPage() {
     setCurrentAspek(null);
     setNamaAspek("");
     setBobotPersen(0);
+    setStatusAktif(true);
     setError("");
     setIsModalOpen(true);
   };
@@ -56,6 +58,7 @@ export default function AspekPage() {
     setCurrentAspek(aspek);
     setNamaAspek(aspek.nama_aspek);
     setBobotPersen(aspek.bobot_persen);
+    setStatusAktif(aspek.status_aktif !== false); // default true if undefined
     setError("");
     setIsModalOpen(true);
   };
@@ -75,7 +78,8 @@ export default function AspekPage() {
 
     const payload = {
       nama_aspek: namaAspek.trim(),
-      bobot_persen: Number(bobotPersen)
+      bobot_persen: Number(bobotPersen),
+      status_aktif: statusAktif
     };
 
     try {
@@ -131,7 +135,8 @@ export default function AspekPage() {
     }
   };
 
-  const totalBobot = data.reduce((sum, a) => sum + Number(a.bobot_persen), 0);
+  const activeAspek = data.filter(a => a.status_aktif !== false);
+  const totalBobot = activeAspek.reduce((sum, a) => sum + Number(a.bobot_persen), 0);
 
   return (
     <div className="animate-fade-in">
@@ -160,7 +165,7 @@ export default function AspekPage() {
             {data.length > 0 ? (
               <>
                 <div style={{ display: "flex", borderRadius: 8, overflow: "hidden", height: 32, marginBottom: 16, background: "var(--muted)" }}>
-                  {data.map((aspek, i) => (
+                  {activeAspek.map((aspek, i) => (
                     <div
                       key={aspek.id}
                       style={{
@@ -181,7 +186,7 @@ export default function AspekPage() {
                   ))}
                 </div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 16 }}>
-                  {data.map((aspek, i) => (
+                  {activeAspek.map((aspek, i) => (
                     <div key={aspek.id} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13 }}>
                       <div style={{ width: 10, height: 10, borderRadius: 3, background: aspekColors[i % aspekColors.length] }} />
                       <span>{aspek.nama_aspek}</span>
@@ -214,7 +219,12 @@ export default function AspekPage() {
                     }}>
                       <Settings size={20} color={aspekColors[i % aspekColors.length]} />
                     </div>
-                    <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 4 }}>{aspek.nama_aspek}</h3>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                      <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0 }}>{aspek.nama_aspek}</h3>
+                      {aspek.status_aktif === false && (
+                        <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "rgba(239,68,68,0.1)", color: "#ef4444", fontWeight: 600 }}>Tidak Aktif</span>
+                      )}
+                    </div>
                     <p style={{ fontSize: 13, color: "var(--muted-foreground)" }}>
                       Aspek {i + 1} dari {data.length}
                     </p>
@@ -308,6 +318,22 @@ export default function AspekPage() {
             />
             <p style={{ fontSize: 12, color: "var(--muted-foreground)", marginTop: 8 }}>
               Tentukan nilai bobot dalam rentang 0 hingga 100.
+            </p>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label" style={{ display: "flex", alignItems: "center", gap: 12, cursor: "pointer" }}>
+              <input 
+                type="checkbox"
+                checked={statusAktif}
+                onChange={(e) => setStatusAktif(e.target.checked)}
+                disabled={formLoading}
+                style={{ width: 18, height: 18 }}
+              />
+              <span style={{ fontSize: 14, fontWeight: 600 }}>Aspek Aktif</span>
+            </label>
+            <p style={{ fontSize: 12, color: "var(--muted-foreground)", marginTop: 8, marginLeft: 30 }}>
+              Jika dinonaktifkan, aspek ini dan indikator di dalamnya tidak akan masuk dalam perhitungan evaluasi.
             </p>
           </div>
 
