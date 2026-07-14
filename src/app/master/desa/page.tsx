@@ -1,14 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { MapPin, Plus, Search, Edit, Trash2, ExternalLink, Loader2, AlertTriangle } from "lucide-react";
+import { MapPin, Plus, Search, Edit, Trash2, ExternalLink, Loader2, AlertTriangle, Download, Upload } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Modal } from "@/components/ui/modal";
+import * as XLSX from "xlsx";
+import { useRef } from "react";
 
 export default function DesaPage() {
   const [search, setSearch] = useState("");
   const [filterKec, setFilterKec] = useState("");
-  
+
   const [data, setData] = useState<any[]>([]);
   const [kecamatanData, setKecamatanData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -17,16 +19,17 @@ export default function DesaPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [currentDesa, setCurrentDesa] = useState<any>(null);
-  
+
   // Form State
   const [namaDesa, setNamaDesa] = useState("");
   const [jenis, setJenis] = useState("desa");
   const [kecamatanId, setKecamatanId] = useState("");
   const [urlWebsite, setUrlWebsite] = useState("");
   const [statusAktif, setStatusAktif] = useState(true);
-  
+
   const [formLoading, setFormLoading] = useState(false);
   const [error, setError] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchData();
@@ -39,7 +42,7 @@ export default function DesaPage() {
         supabase.from("desa").select("*, kecamatan(nama_kecamatan)").order("nama_desa"),
         supabase.from("kecamatan").select("*").order("nama_kecamatan")
       ]);
-      
+
       if (desaRes.error) throw desaRes.error;
       if (kecRes.error) throw kecRes.error;
 
@@ -111,12 +114,12 @@ export default function DesaPage() {
           .insert([payload]);
         if (err) throw err;
       }
-      
+
       setIsModalOpen(false);
       fetchData(); // Refresh
     } catch (err: any) {
       console.error("Save error:", err);
-      if (err.code === "23505") { 
+      if (err.code === "23505") {
         setError("Nama desa/kelurahan ini sudah ada di kecamatan tersebut!");
       } else {
         setError(err.message || "Gagal menyimpan data.");
@@ -136,9 +139,9 @@ export default function DesaPage() {
         .from("desa")
         .delete()
         .eq("id", currentDesa.id);
-      
+
       if (err) throw err;
-      
+
       setIsDeleteModalOpen(false);
       fetchData();
     } catch (err: any) {
@@ -147,6 +150,85 @@ export default function DesaPage() {
     } finally {
       setFormLoading(false);
     }
+  };
+
+  const handleExport = () => {
+    const exportData = data.map(d => ({
+      nama_desa: d.nama_desa,
+      jenis: d.jenis,
+      nama_kecamatan: d.kecamatan?.nama_kecamatan || "",
+      url_website: d.url_website || ""
+    }));
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Master Desa");
+    XLSX.writeFile(wb, "master_desa.xlsx");
+  };
+
+  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setLoading(true);
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      try {
+        const bstr = evt.target?.result;
+        const wb = XLSX.read(bstr, { type: 'binary' });
+        const wsname = wb.SheetNames[0];
+        const ws = wb.Sheets[wsname];
+        const rows = XLSX.utils.sheet_to_json(ws) as any[];
+
+        let imported = 0;
+
+        for (const row of rows) {
+          if (!row.nama_desa || !row.nama_kecamatan) continue;
+          const namaDesa = String(row.nama_desa).trim();
+          const namaKecamatan = String(row.nama_kecamatan).trim();
+          const jenis = String(row.jenis || "").toLowerCase() === "kelurahan" ? "kelurahan" : "desa";
+          const url_website = row.url_website ? String(row.url_website).trim() : null;
+
+          // Find Kecamatan ID
+          const kec = kecamatanData.find(k => k.nama_kecamatan.toLowerCase() === namaKecamatan.toLowerCase());
+          if (!kec) {
+            console.warn(`Kecamatan ${namaKecamatan} tidak ditemukan untuk desa ${namaDesa}, baris dilewati.`);
+            continue;
+          }
+
+          // Check if exist
+          const exists = data.find(d =>
+            d.nama_desa.toLowerCase() === namaDesa.toLowerCase() &&
+            d.kecamatan_id === kec.id
+          );
+
+          if (!exists) {
+            await supabase.from("desa").insert([{
+              nama_desa: namaDesa,
+              jenis,
+              kecamatan_id: kec.id,
+              url_website,
+              status_aktif: true
+            }]);
+            imported++;
+          }
+        }
+
+        alert(`Berhasil mengimpor ${imported} desa/kelurahan baru.`);
+        fetchData();
+      } catch (err) {
+        console.error("Import error:", err);
+        alert("Terjadi kesalahan saat membaca file Excel.");
+        setLoading(false);
+      }
+
+      // Reset file input
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    };
+    reader.onerror = (err) => {
+      alert("Gagal membaca file Excel");
+      setLoading(false);
+    };
+    reader.readAsBinaryString(file);
   };
 
   const filtered = data.filter((d) => {
@@ -162,9 +244,24 @@ export default function DesaPage() {
           <h1 className="page-title">Data Desa / Kelurahan</h1>
           <p className="page-subtitle">Kelola data {data.length} desa dan kelurahan</p>
         </div>
-        <button className="btn btn-primary" onClick={openAddModal}>
-          <Plus size={16} /> Tambah Desa
-        </button>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <button className="btn btn-secondary" onClick={handleExport}>
+            <Download size={16} /> Export Excel
+          </button>
+          <input
+            type="file"
+            accept=".xlsx, .xls"
+            style={{ display: "none" }}
+            ref={fileInputRef}
+            onChange={handleImport}
+          />
+          <button className="btn btn-secondary" onClick={() => fileInputRef.current?.click()}>
+            <Upload size={16} /> Import Excel
+          </button>
+          <button className="btn btn-primary" onClick={openAddModal}>
+            <Plus size={16} /> Tambah Desa
+          </button>
+        </div>
       </div>
 
       <div className="card">
@@ -209,7 +306,7 @@ export default function DesaPage() {
                     <th>Kecamatan</th>
                     <th>Jenis</th>
                     <th>URL Website</th>
-                    <th>Status</th>
+                    {/* <th>Status</th> */}
                     <th style={{ width: 100 }}>Aksi</th>
                   </tr>
                 </thead>
@@ -255,12 +352,12 @@ export default function DesaPage() {
                             <span style={{ color: "var(--muted-foreground)" }}>-</span>
                           )}
                         </td>
-                        <td>
+                        {/* <td>
                           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                             <span className={`status-dot ${desa.status_aktif ? "status-dot-green" : "status-dot-red"}`} />
                             <span style={{ fontSize: 13 }}>{desa.status_aktif ? "Aktif" : "Tidak Aktif"}</span>
                           </div>
-                        </td>
+                        </td> */}
                         <td>
                           <div style={{ display: "flex", gap: 4 }}>
                             <button className="btn btn-ghost btn-sm" title="Edit" onClick={() => openEditModal(desa)}>
@@ -294,27 +391,27 @@ export default function DesaPage() {
       </div>
 
       {/* Form Modal (Add/Edit) */}
-      <Modal 
-        isOpen={isModalOpen} 
+      <Modal
+        isOpen={isModalOpen}
         onClose={() => !formLoading && setIsModalOpen(false)}
         title={currentDesa ? "Edit Desa/Kelurahan" : "Tambah Desa/Kelurahan"}
       >
         <form onSubmit={handleSubmit}>
           {error && (
-            <div style={{ 
-              padding: 12, borderRadius: 8, backgroundColor: "rgba(239, 68, 68, 0.1)", 
-              color: "#ef4444", fontSize: 13, marginBottom: 16, display: "flex", gap: 8 
+            <div style={{
+              padding: 12, borderRadius: 8, backgroundColor: "rgba(239, 68, 68, 0.1)",
+              color: "#ef4444", fontSize: 13, marginBottom: 16, display: "flex", gap: 8
             }}>
               <AlertTriangle size={16} /> {error}
             </div>
           )}
-          
+
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             <div className="form-group">
               <label className="form-label">Nama Desa / Kelurahan</label>
-              <input 
-                type="text" 
-                className="form-input" 
+              <input
+                type="text"
+                className="form-input"
                 placeholder="Contoh: Cimekar"
                 value={namaDesa}
                 onChange={(e) => setNamaDesa(e.target.value)}
@@ -326,7 +423,7 @@ export default function DesaPage() {
             <div style={{ display: "flex", gap: 12 }}>
               <div className="form-group" style={{ flex: 1 }}>
                 <label className="form-label">Jenis</label>
-                <select 
+                <select
                   className="form-select"
                   value={jenis}
                   onChange={(e) => setJenis(e.target.value)}
@@ -339,7 +436,7 @@ export default function DesaPage() {
 
               <div className="form-group" style={{ flex: 1 }}>
                 <label className="form-label">Kecamatan</label>
-                <select 
+                <select
                   className="form-select"
                   value={kecamatanId}
                   onChange={(e) => setKecamatanId(e.target.value)}
@@ -356,9 +453,9 @@ export default function DesaPage() {
 
             <div className="form-group">
               <label className="form-label">URL Website (Opsional)</label>
-              <input 
-                type="url" 
-                className="form-input" 
+              <input
+                type="url"
+                className="form-input"
                 placeholder="https://desa-cimekar.id"
                 value={urlWebsite}
                 onChange={(e) => setUrlWebsite(e.target.value)}
@@ -367,7 +464,7 @@ export default function DesaPage() {
             </div>
 
             <div className="form-group" style={{ display: "none" }}>
-              <input 
+              <input
                 type="checkbox"
                 id="statusAktif"
                 checked={statusAktif}
@@ -382,18 +479,18 @@ export default function DesaPage() {
           </div>
 
           <div style={{ display: "flex", gap: 12, marginTop: 24 }}>
-            <button 
-              type="button" 
-              className="btn btn-secondary" 
+            <button
+              type="button"
+              className="btn btn-secondary"
               style={{ flex: 1 }}
               onClick={() => setIsModalOpen(false)}
               disabled={formLoading}
             >
               Batal
             </button>
-            <button 
-              type="submit" 
-              className="btn btn-primary" 
+            <button
+              type="submit"
+              className="btn btn-primary"
               style={{ flex: 1 }}
               disabled={formLoading || !namaDesa.trim() || !kecamatanId}
             >
@@ -404,40 +501,40 @@ export default function DesaPage() {
       </Modal>
 
       {/* Delete Confirmation Modal */}
-      <Modal 
-        isOpen={isDeleteModalOpen} 
+      <Modal
+        isOpen={isDeleteModalOpen}
         onClose={() => !formLoading && setIsDeleteModalOpen(false)}
         title="Hapus Desa/Kelurahan"
       >
         <div>
           {error && (
-            <div style={{ 
-              padding: 12, borderRadius: 8, backgroundColor: "rgba(239, 68, 68, 0.1)", 
-              color: "#ef4444", fontSize: 13, marginBottom: 16, display: "flex", gap: 8 
+            <div style={{
+              padding: 12, borderRadius: 8, backgroundColor: "rgba(239, 68, 68, 0.1)",
+              color: "#ef4444", fontSize: 13, marginBottom: 16, display: "flex", gap: 8
             }}>
               <AlertTriangle size={16} /> {error}
             </div>
           )}
-          
+
           <p style={{ fontSize: 14, color: "var(--foreground)", marginBottom: 24, lineHeight: 1.5 }}>
-            Apakah Anda yakin ingin menghapus {currentDesa?.jenis} <strong>{currentDesa?.nama_desa}</strong>? 
-            <br/><br/>
+            Apakah Anda yakin ingin menghapus {currentDesa?.jenis} <strong>{currentDesa?.nama_desa}</strong>?
+            <br /><br />
             <span style={{ color: "#ef4444", fontSize: 13 }}>Peringatan: Aksi ini juga akan menghapus semua riwayat penilaian dan kendala yang terhubung dengan desa ini!</span>
           </p>
 
           <div style={{ display: "flex", gap: 12 }}>
-            <button 
-              type="button" 
-              className="btn btn-secondary" 
+            <button
+              type="button"
+              className="btn btn-secondary"
               style={{ flex: 1 }}
               onClick={() => setIsDeleteModalOpen(false)}
               disabled={formLoading}
             >
               Batal
             </button>
-            <button 
-              type="button" 
-              className="btn btn-primary" 
+            <button
+              type="button"
+              className="btn btn-primary"
               style={{ flex: 1, backgroundColor: "#ef4444", border: "none" }}
               onClick={handleDelete}
               disabled={formLoading}

@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Building2, Plus, Search, Edit, Trash2, Loader2, AlertTriangle } from "lucide-react";
+import { Building2, Plus, Search, Edit, Trash2, Loader2, AlertTriangle, Download, Upload } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Modal } from "@/components/ui/modal";
+import * as XLSX from "xlsx";
+import { useRef } from "react";
 
 export default function KecamatanPage() {
   const [search, setSearch] = useState("");
@@ -20,6 +22,7 @@ export default function KecamatanPage() {
   const [namaKecamatan, setNamaKecamatan] = useState("");
   const [formLoading, setFormLoading] = useState(false);
   const [error, setError] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchData();
@@ -126,6 +129,60 @@ export default function KecamatanPage() {
     }
   };
 
+  const handleExport = () => {
+    const exportData = data.map(d => ({ nama_kecamatan: d.nama_kecamatan }));
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Master Kecamatan");
+    XLSX.writeFile(wb, "master_kecamatan.xlsx");
+  };
+
+  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setLoading(true);
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      try {
+        const bstr = evt.target?.result;
+        const wb = XLSX.read(bstr, { type: 'binary' });
+        const wsname = wb.SheetNames[0];
+        const ws = wb.Sheets[wsname];
+        const rows = XLSX.utils.sheet_to_json(ws) as any[];
+        
+        let imported = 0;
+        
+        for (const row of rows) {
+          if (!row.nama_kecamatan) continue;
+          const nama = String(row.nama_kecamatan).trim();
+          
+          // Check if exist
+          const exists = data.find(d => d.nama_kecamatan.toLowerCase() === nama.toLowerCase());
+          if (!exists) {
+            await supabase.from("kecamatan").insert([{ nama_kecamatan: nama }]);
+            imported++;
+          }
+        }
+        
+        alert(`Berhasil mengimpor ${imported} kecamatan baru.`);
+        fetchData();
+      } catch (err) {
+        console.error("Import error:", err);
+        alert("Terjadi kesalahan saat membaca file Excel.");
+        setLoading(false);
+      }
+      
+      // Reset file input
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    };
+    reader.onerror = (err) => {
+      alert("Gagal membaca file Excel");
+      setLoading(false);
+    };
+    reader.readAsBinaryString(file);
+  };
+
   const filtered = data.filter((k) =>
     k.nama_kecamatan.toLowerCase().includes(search.toLowerCase())
   );
@@ -137,9 +194,24 @@ export default function KecamatanPage() {
           <h1 className="page-title">Data Kecamatan</h1>
           <p className="page-subtitle">Kelola data kecamatan di Kabupaten Bandung</p>
         </div>
-        <button className="btn btn-primary" onClick={openAddModal}>
-          <Plus size={16} /> Tambah Kecamatan
-        </button>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <button className="btn btn-secondary" onClick={handleExport}>
+            <Download size={16} /> Export Excel
+          </button>
+          <input
+            type="file"
+            accept=".xlsx, .xls"
+            style={{ display: "none" }}
+            ref={fileInputRef}
+            onChange={handleImport}
+          />
+          <button className="btn btn-secondary" onClick={() => fileInputRef.current?.click()}>
+            <Upload size={16} /> Import Excel
+          </button>
+          <button className="btn btn-primary" onClick={openAddModal}>
+            <Plus size={16} /> Tambah Kecamatan
+          </button>
+        </div>
       </div>
 
       <div className="card">

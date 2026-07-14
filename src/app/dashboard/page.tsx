@@ -51,12 +51,12 @@ export default function DashboardPage() {
       ]);
 
       const totalDesa = desaCountRes.count || 0;
-      
+
       const webProfiles = webProfileRes.data || [];
       const totalWeb = webProfiles.length;
       let websiteOnline = 0;
       const statusWebCounts: Record<string, number> = {};
-      
+
       webProfiles.forEach(w => {
         const s = w.status_website || "Online";
         if (s === "Online") websiteOnline++;
@@ -141,7 +141,7 @@ export default function DashboardPage() {
           .from("hasil_evaluasi")
           .select("total_skor")
           .eq("periode_id", p.id);
-        
+
         const count = evals?.length || 0;
         const sum = evals?.reduce((s, e) => s + Number(e.total_skor), 0) || 0;
         const avg = count > 0 ? sum / count : 0;
@@ -221,7 +221,7 @@ export default function DashboardPage() {
           iconBg="linear-gradient(135deg, #3b82f6, #1e40af)"
           value={stats.totalDesa}
           label="Total Desa/Kelurahan"
-          sub={`${stats.websiteAktif} website aktif`}
+          // sub={`${stats.websiteAktif} website aktif`}
           subColor="#10b981"
         />
         <StatCard
@@ -391,7 +391,7 @@ export default function DashboardPage() {
                 if (item.name === "Offline") color = "#ef4444";
                 if (item.name === "Error") color = "#f97316";
                 if (item.name === "Maintenance") color = "#f59e0b";
-                
+
                 return (
                   <div key={idx} style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     <div style={{ width: 40, height: 40, borderRadius: 10, background: `${color}15`, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -457,10 +457,10 @@ export default function DashboardPage() {
                         i === 0
                           ? "linear-gradient(135deg, #fbbf24, #d97706)"
                           : i === 1
-                          ? "linear-gradient(135deg, #d1d5db, #9ca3af)"
-                          : i === 2
-                          ? "linear-gradient(135deg, #d97706, #92400e)"
-                          : "var(--muted)",
+                            ? "linear-gradient(135deg, #d1d5db, #9ca3af)"
+                            : i === 2
+                              ? "linear-gradient(135deg, #d97706, #92400e)"
+                              : "var(--muted)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -568,12 +568,12 @@ export default function DashboardPage() {
                         entry.skor >= 85
                           ? "#10b981"
                           : entry.skor >= 70
-                          ? "#3b82f6"
-                          : entry.skor >= 55
-                          ? "#f59e0b"
-                          : entry.skor >= 40
-                          ? "#f97316"
-                          : "#ef4444"
+                            ? "#3b82f6"
+                            : entry.skor >= 55
+                              ? "#f59e0b"
+                              : entry.skor >= 40
+                                ? "#f97316"
+                                : "#ef4444"
                       }
                     />
                   ))}

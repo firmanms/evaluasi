@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Globe, Search, Phone, Mail, Wifi, Monitor, Calendar, User, Plus, Edit2, Trash2, Loader2, AlertTriangle, MoreVertical, Save, Server } from "lucide-react";
+import { Globe, Search, Phone, Mail, Wifi, Monitor, Calendar, User, Plus, Edit2, Trash2, Loader2, AlertTriangle, MoreVertical, Save, Server, Download, Upload } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Modal } from "@/components/ui/modal";
+import * as XLSX from "xlsx";
+import { useRef } from "react";
 
 export default function ProfilWebsitePage() {
   const [data, setData] = useState<any[]>([]);
@@ -12,12 +14,14 @@ export default function ProfilWebsitePage() {
   const [loading, setLoading] = useState(true);
   
   const [search, setSearch] = useState("");
+  const [filterKec, setFilterKec] = useState("");
   
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -214,11 +218,124 @@ export default function ProfilWebsitePage() {
     }
   };
 
-  const filtered = data.filter(
-    (d) =>
-      d.nama_desa?.toLowerCase().includes(search.toLowerCase()) ||
-      d.operator?.toLowerCase().includes(search.toLowerCase())
-  );
+  const handleExport = () => {
+    const exportData = data.map(d => ({
+      nama_desa: d.nama_desa || "",
+      nama_kecamatan: d.nama_kecamatan || "",
+      operator: d.operator || "",
+      no_wa: d.no_wa || "",
+      email: d.email || "",
+      tahun_mulai_gunakan: d.tahun_mulai_gunakan || "",
+      jumlah_operator: d.jumlah_operator || 1,
+      perangkat_digunakan: d.perangkat_digunakan || "",
+      kecepatan_internet: d.kecepatan_internet || "",
+      pengelola_website: d.pengelola_website || "",
+      frekuensi_update: d.frekuensi_update || "",
+      kendala: d.kendala || "",
+      saran: d.saran || "",
+      versi: d.versi || "",
+      jenis_versi: d.jenis_versi || "-",
+      status_website: d.status_website || "Online",
+      nama_server: d.nama_server || ""
+    }));
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Profil Website");
+    XLSX.writeFile(wb, "profil_website.xlsx");
+  };
+
+  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setLoading(true);
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      try {
+        const bstr = evt.target?.result;
+        const wb = XLSX.read(bstr, { type: 'binary' });
+        const wsname = wb.SheetNames[0];
+        const ws = wb.Sheets[wsname];
+        const rows = XLSX.utils.sheet_to_json(ws) as any[];
+        
+        let imported = 0;
+        
+        for (const row of rows) {
+          if (!row.nama_desa || !row.nama_kecamatan) continue;
+          const namaDesa = String(row.nama_desa).trim();
+          const namaKecamatan = String(row.nama_kecamatan).trim();
+          
+          // Find Desa ID using both nama_desa and nama_kecamatan
+          const desa = desaList.find(d => 
+            d.nama_desa.toLowerCase() === namaDesa.toLowerCase() &&
+            d.nama_kecamatan?.toLowerCase() === namaKecamatan.toLowerCase()
+          );
+          if (!desa) {
+            console.warn(`Desa ${namaDesa} di Kecamatan ${namaKecamatan} tidak ditemukan, baris dilewati.`);
+            continue;
+          }
+
+          // Check if profile exists
+          const exists = data.find(d => d.desa_id === desa.id);
+          
+          if (!exists) {
+            // Match server
+            let server_id = null;
+            if (row.nama_server) {
+              const srvName = String(row.nama_server).trim();
+              const srv = serverList.find(s => s.nama_server.toLowerCase() === srvName.toLowerCase());
+              if (srv) server_id = srv.id;
+            }
+
+            await supabase.from("master_website").insert([{ 
+              desa_id: desa.id,
+              server_id,
+              operator: row.operator ? String(row.operator) : null,
+              no_wa: row.no_wa ? String(row.no_wa) : null,
+              email: row.email ? String(row.email) : null,
+              tahun_mulai_gunakan: row.tahun_mulai_gunakan ? parseInt(row.tahun_mulai_gunakan) : new Date().getFullYear(),
+              jumlah_operator: row.jumlah_operator ? parseInt(row.jumlah_operator) : 1,
+              perangkat_digunakan: row.perangkat_digunakan || "Laptop",
+              kecepatan_internet: row.kecepatan_internet || "10-20 Mbps",
+              pengelola_website: row.pengelola_website || "Operator Desa",
+              frekuensi_update: row.frekuensi_update || "Mingguan",
+              kendala: row.kendala ? String(row.kendala) : null,
+              saran: row.saran ? String(row.saran) : null,
+              versi: row.versi ? String(row.versi) : null,
+              jenis_versi: row.jenis_versi || "Umum",
+              status_website: row.status_website || "Online",
+              updated_at: new Date().toISOString()
+            }]);
+            imported++;
+          }
+        }
+        
+        alert(`Berhasil mengimpor ${imported} profil website baru.`);
+        fetchData();
+      } catch (err) {
+        console.error("Import error:", err);
+        alert("Terjadi kesalahan saat membaca file Excel.");
+        setLoading(false);
+      }
+      
+      // Reset file input
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    };
+    reader.onerror = (err) => {
+      alert("Gagal membaca file Excel");
+      setLoading(false);
+    };
+    reader.readAsBinaryString(file);
+  };
+
+  const filtered = data.filter((d) => {
+    const matchSearch = d.nama_desa?.toLowerCase().includes(search.toLowerCase()) || d.operator?.toLowerCase().includes(search.toLowerCase());
+    const matchKec = filterKec ? d.nama_kecamatan === filterKec : true;
+    return matchSearch && matchKec;
+  });
+
+  // Unique kecamatans for filter dropdown
+  const uniqueKecamatans = Array.from(new Set(desaList.map(d => d.nama_kecamatan).filter(Boolean))).sort() as string[];
 
   // Available desas for new profiles (exclude those who already have one)
   const availableDesas = desaList.filter(d => !data.some(w => w.desa_id === d.id) || d.id === formData.desa_id);
@@ -230,9 +347,24 @@ export default function ProfilWebsitePage() {
           <h1 className="page-title">Profil Website Desa</h1>
           <p className="page-subtitle">Kelola data operator dan inventaris pengelolaan website</p>
         </div>
-        <button className="btn btn-primary" onClick={openAddModal}>
-          <Plus size={16} /> Tambah Profil
-        </button>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <button className="btn btn-secondary" onClick={handleExport}>
+            <Download size={16} /> Export Excel
+          </button>
+          <input
+            type="file"
+            accept=".xlsx, .xls"
+            style={{ display: "none" }}
+            ref={fileInputRef}
+            onChange={handleImport}
+          />
+          <button className="btn btn-secondary" onClick={() => fileInputRef.current?.click()}>
+            <Upload size={16} /> Import Excel
+          </button>
+          <button className="btn btn-primary" onClick={openAddModal}>
+            <Plus size={16} /> Tambah Profil
+          </button>
+        </div>
       </div>
 
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
@@ -244,6 +376,17 @@ export default function ProfilWebsitePage() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
+        <select
+          className="form-select"
+          style={{ width: "auto", minWidth: 180, padding: "8px 12px" }}
+          value={filterKec}
+          onChange={(e) => setFilterKec(e.target.value)}
+        >
+          <option value="">Semua Kecamatan</option>
+          {uniqueKecamatans.map((kecName) => (
+            <option key={kecName} value={kecName}>{kecName}</option>
+          ))}
+        </select>
         <span style={{ fontSize: 13, color: "var(--muted-foreground)" }}>
           {filtered.length} profil tersedia
         </span>

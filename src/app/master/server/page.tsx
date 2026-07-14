@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Search, Edit2, Trash2, Server, MapPin, Globe, Loader2, AlertTriangle, Save } from "lucide-react";
+import { Plus, Search, Edit2, Trash2, Server, MapPin, Globe, Loader2, AlertTriangle, Save, Download, Upload } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Modal } from "@/components/ui/modal";
+import * as XLSX from "xlsx";
+import { useRef } from "react";
 
 export default function MasterServerPage() {
   const [data, setData] = useState<any[]>([]);
@@ -15,6 +17,7 @@ export default function MasterServerPage() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -140,6 +143,81 @@ export default function MasterServerPage() {
       d.lokasi_server?.toLowerCase().includes(search.toLowerCase())
   );
 
+  const handleExport = () => {
+    const exportData = data.map(d => ({
+      nama_server: d.nama_server,
+      lokasi_server: d.lokasi_server,
+      ip_privat: d.ip_privat || "",
+      ip_publik: d.ip_publik || "",
+      ram: d.ram || "",
+      processor: d.processor || "",
+      disk: d.disk || ""
+    }));
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Master Server");
+    XLSX.writeFile(wb, "master_server.xlsx");
+  };
+
+  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setLoading(true);
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      try {
+        const bstr = evt.target?.result;
+        const wb = XLSX.read(bstr, { type: 'binary' });
+        const wsname = wb.SheetNames[0];
+        const ws = wb.Sheets[wsname];
+        const rows = XLSX.utils.sheet_to_json(ws) as any[];
+        
+        let imported = 0;
+        
+        for (const row of rows) {
+          if (!row.nama_server) continue;
+          
+          const validLokasi = ['Mandiri', 'Kabupaten', 'Provinsi', 'PDN', 'Lainnya'];
+          const inputLokasi = String(row.lokasi_server).trim();
+          const lokasi = validLokasi.includes(inputLokasi) ? inputLokasi : 'Mandiri';
+          
+          // Check if exist
+          const namaServer = String(row.nama_server).trim();
+          const exists = data.find(d => d.nama_server.toLowerCase() === namaServer.toLowerCase());
+          
+          if (!exists) {
+            await supabase.from("master_server").insert([{ 
+              nama_server: namaServer,
+              lokasi_server: lokasi,
+              ip_privat: row.ip_privat ? String(row.ip_privat).trim() : null,
+              ip_publik: row.ip_publik ? String(row.ip_publik).trim() : null,
+              ram: row.ram ? String(row.ram).trim() : null,
+              processor: row.processor ? String(row.processor).trim() : null,
+              disk: row.disk ? String(row.disk).trim() : null
+            }]);
+            imported++;
+          }
+        }
+        
+        alert(`Berhasil mengimpor ${imported} server baru.`);
+        fetchData();
+      } catch (err) {
+        console.error("Import error:", err);
+        alert("Terjadi kesalahan saat membaca file Excel.");
+        setLoading(false);
+      }
+      
+      // Reset file input
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    };
+    reader.onerror = (err) => {
+      alert("Gagal membaca file Excel");
+      setLoading(false);
+    };
+    reader.readAsBinaryString(file);
+  };
+
   return (
     <div className="animate-fade-in">
       <div className="page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
@@ -147,9 +225,24 @@ export default function MasterServerPage() {
           <h1 className="page-title">Master Server</h1>
           <p className="page-subtitle">Kelola data server hosting website desa</p>
         </div>
-        <button className="btn btn-primary" onClick={openAddModal}>
-          <Plus size={16} /> Tambah Server
-        </button>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <button className="btn btn-secondary" onClick={handleExport}>
+            <Download size={16} /> Export Excel
+          </button>
+          <input
+            type="file"
+            accept=".xlsx, .xls"
+            style={{ display: "none" }}
+            ref={fileInputRef}
+            onChange={handleImport}
+          />
+          <button className="btn btn-secondary" onClick={() => fileInputRef.current?.click()}>
+            <Upload size={16} /> Import Excel
+          </button>
+          <button className="btn btn-primary" onClick={openAddModal}>
+            <Plus size={16} /> Tambah Server
+          </button>
+        </div>
       </div>
 
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
