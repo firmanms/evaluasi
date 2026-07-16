@@ -158,8 +158,8 @@ export function Header() {
           </div>
           <div className="hidden md:block">
             <div style={{ fontSize: 13, fontWeight: 500 }}>{user?.nama || "Admin Diskominfo"}</div>
-            <div style={{ fontSize: 11, color: "var(--muted-foreground)" }}>
-              {user?.role ? user.role.replace("_", " ") : "Super Admin"}
+            <div style={{ fontSize: 11, color: "var(--muted-foreground)", textTransform: "capitalize" }}>
+              {user?.role ? user.role.replace(/_/g, " ") : "Super Admin"}
             </div>
           </div>
         </div>

@@ -172,7 +172,17 @@ create table kendala (
     diupdate_pada timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
--- 12. Tabel Profil Pengguna (Extension/Mapping ke auth.users)
+-- 12. Tabel Peran/Role Pengguna Dinamis
+create table roles_app (
+    id uuid default gen_random_uuid() primary key,
+    nama_role varchar(100) unique not null,
+    deskripsi text,
+    base_role varchar(50) not null default 'viewer',
+    permissions jsonb not null default '[]'::jsonb,
+    created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- 13. Tabel Profil Pengguna (Extension/Mapping ke auth.users)
 create type role_user_enum as enum ('super_admin', 'admin_kecamatan', 'operator_desa', 'viewer');
 
 create table users_app (
@@ -180,6 +190,7 @@ create table users_app (
     nama varchar(150) not null,
     email varchar(150) not null unique,
     role role_user_enum default 'viewer'::role_user_enum not null,
+    role_dinamis varchar(100),
     desa_id uuid references desa(id) on delete set null,
     kecamatan_id uuid references kecamatan(id) on delete set null,
     created_at timestamp with time zone default timezone('utc'::text, now()) not null
@@ -189,11 +200,12 @@ create table users_app (
 create or replace function public.handle_new_user()
 returns trigger as $$
 begin
-  insert into public.users_app (id, nama, email, role)
+  insert into public.users_app (id, nama, email, role, role_dinamis)
   values (
     new.id, 
     coalesce(new.raw_user_meta_data->>'nama', split_part(new.email, '@', 1)), 
     new.email, 
+    'viewer',
     'viewer'
   );
   return new;
@@ -239,3 +251,15 @@ CREATE POLICY "Public access for log_monitoring" ON log_monitoring_otomatis FOR 
 CREATE POLICY "Public access for kendala" ON kendala FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Public access for users_app" ON users_app FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Public access for master_server" ON master_server FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Public access for roles_app" ON roles_app FOR ALL USING (true) WITH CHECK (true);
+
+-- ==========================================
+-- INIT DATA PERAN (ROLES)
+-- ==========================================
+INSERT INTO roles_app (nama_role, deskripsi, base_role, permissions)
+VALUES (
+  'checker', 
+  'Hanya bisa membuka dashboard web desa dan modul profil desa', 
+  'viewer',
+  '["/profilwebdesa", "/profil-website"]'::jsonb
+);

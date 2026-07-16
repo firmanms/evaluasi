@@ -26,12 +26,14 @@ export default function PenggunaPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
+  const [rolesList, setRolesList] = useState<any[]>([]);
+
   // Form state
   const [formData, setFormData] = useState({
     id: "",
     nama: "",
     email: "",
-    role: "viewer" as RoleUser,
+    role: "viewer" as string,
     kecamatan_id: "",
     desa_id: ""
   });
@@ -53,9 +55,10 @@ export default function PenggunaPage() {
       setData(users || []);
 
       // 2. Fetch kecamatan & desa lists for dropdowns
-      const [kecRes, desaRes] = await Promise.all([
+      const [kecRes, desaRes, rolesRes] = await Promise.all([
         supabase.from("kecamatan").select("id, nama_kecamatan").order("nama_kecamatan"),
-        supabase.from("desa").select("id, nama_desa, kecamatan_id, kecamatan(nama_kecamatan)").order("nama_desa")
+        supabase.from("desa").select("id, nama_desa, kecamatan_id, kecamatan(nama_kecamatan)").order("nama_desa"),
+        supabase.from("roles_app").select("*").order("nama_role")
       ]);
 
       if (kecRes.data) setKecamatanList(kecRes.data);
@@ -67,6 +70,17 @@ export default function PenggunaPage() {
           nama_kecamatan: d.kecamatan?.nama_kecamatan
         }));
         setDesaList(flatDesa);
+      }
+
+      if (rolesRes.data && rolesRes.data.length > 0) {
+        setRolesList(rolesRes.data);
+      } else {
+        setRolesList([
+          { nama_role: "super_admin", deskripsi: "Super Admin" },
+          { nama_role: "admin_kecamatan", deskripsi: "Admin Kecamatan" },
+          { nama_role: "operator_desa", deskripsi: "Operator Desa" },
+          { nama_role: "viewer", deskripsi: "Viewer" }
+        ]);
       }
 
     } catch (err) {
@@ -109,7 +123,7 @@ export default function PenggunaPage() {
       id: item.id,
       nama: item.nama,
       email: item.email,
-      role: item.role || "viewer",
+      role: item.role_dinamis || item.role || "viewer",
       kecamatan_id: item.kecamatan_id || "",
       desa_id: item.desa_id || ""
     });
@@ -128,11 +142,15 @@ export default function PenggunaPage() {
     setError("");
 
     try {
+      const selectedRoleObj = rolesList.find(r => r.nama_role === formData.role);
+      const baseRole = selectedRoleObj?.base_role || "viewer";
+
       const payload = {
         nama: formData.nama,
-        role: formData.role,
-        kecamatan_id: formData.role === "admin_kecamatan" ? formData.kecamatan_id : null,
-        desa_id: formData.role === "operator_desa" ? formData.desa_id : null,
+        role: baseRole,
+        role_dinamis: formData.role,
+        kecamatan_id: baseRole === "admin_kecamatan" ? formData.kecamatan_id : null,
+        desa_id: baseRole === "operator_desa" ? formData.desa_id : null,
       };
 
       if (formData.id) {
@@ -180,14 +198,23 @@ export default function PenggunaPage() {
       u.email.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Role Counts
-  const counts = (Object.keys(roleConfig) as RoleUser[]).reduce((acc, role) => {
-    acc[role] = data.filter((u) => u.role === role).length;
+  const getRoleBadge = (roleName: string) => {
+    const key = (roleName || "viewer").toLowerCase();
+    const cfg = roleConfig[key as RoleUser] || {
+      label: key.split('_').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
+      color: "#64748b",
+      bg: "rgba(100,116,139,0.12)"
+    };
+    return cfg;
+  };
+
+  const counts = data.reduce((acc: Record<string, number>, user) => {
+    acc[user.role] = (acc[user.role] || 0) + 1;
     return acc;
-  }, {} as Record<RoleUser, number>);
+  }, {});
 
   return (
-    <div className="animate-fade-in">
+    <div className="animate-fade-in" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
       <div className="page-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
         <div>
           <h1 className="page-title">Manajemen Pengguna</h1>
@@ -195,10 +222,11 @@ export default function PenggunaPage() {
         </div>
       </div>
 
-      {/* Role Summary */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12, marginBottom: 20 }}>
-        {(Object.keys(roleConfig) as RoleUser[]).map((role) => {
-          const cfg = roleConfig[role];
+      {/* Stat Cards */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16, marginBottom: 8 }}>
+        {rolesList.map((r) => {
+          const role = r.nama_role;
+          const cfg = getRoleBadge(role);
           const count = counts[role] || 0;
           return (
             <div key={role} className="card" style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -253,7 +281,7 @@ export default function PenggunaPage() {
               </thead>
               <tbody>
                 {filtered.map((user, i) => {
-                  const cfg = roleConfig[user.role as RoleUser] || roleConfig.viewer;
+                  const cfg = getRoleBadge(user.role);
                   
                   let wilayah = "Kabupaten";
                   if (user.role === "admin_kecamatan") {
@@ -352,16 +380,20 @@ export default function PenggunaPage() {
               className="form-select"
               required
               value={formData.role}
-              onChange={(e) => setFormData({ ...formData, role: e.target.value as RoleUser })}
+              onChange={(e) => setFormData({ ...formData, role: e.target.value })}
             >
-              <option value="viewer">Viewer (Hanya Melihat)</option>
-              <option value="operator_desa">Operator Desa (Input Penilaian Desa)</option>
-              <option value="admin_kecamatan">Admin Kecamatan (Melihat & Evaluasi Desa)</option>
-              <option value="super_admin">Super Admin (Akses Penuh)</option>
+              {rolesList.map((r) => {
+                const cfg = getRoleBadge(r.nama_role);
+                return (
+                  <option key={r.nama_role} value={r.nama_role}>
+                    {cfg.label}
+                  </option>
+                );
+              })}
             </select>
           </div>
 
-          {formData.role === "admin_kecamatan" && (
+          {rolesList.find(r => r.nama_role === formData.role)?.base_role === "admin_kecamatan" && (
             <div className="form-group">
               <label className="form-label">Wilayah Kecamatan Tugas *</label>
               <select
@@ -378,7 +410,7 @@ export default function PenggunaPage() {
             </div>
           )}
 
-          {formData.role === "operator_desa" && (
+          {rolesList.find(r => r.nama_role === formData.role)?.base_role === "operator_desa" && (
             <div className="form-group">
               <label className="form-label">Wilayah Desa Tugas *</label>
               <select

@@ -5,7 +5,8 @@ import { useRouter, usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
-import { Loader2 } from "lucide-react";
+import Link from "next/link";
+import { Loader2, Shield } from "lucide-react";
 
 type UserProfile = {
   id: string;
@@ -14,6 +15,15 @@ type UserProfile = {
   role: string;
   desa_id: string | null;
   kecamatan_id: string | null;
+  permissions: string[];
+};
+
+const FALLBACK_PERMISSIONS: Record<string, string[]> = {
+  super_admin: ["/dashboard", "/master/kecamatan", "/master/desa", "/master/server", "/master/indikator", "/master/aspek", "/master/periode", "/profilwebdesa", "/profil-website", "/penilaian", "/hasil-evaluasi", "/monitoring", "/kendala", "/laporan", "/pengguna", "/master/role"],
+  admin_kecamatan: ["/dashboard", "/profilwebdesa", "/profil-website", "/penilaian", "/hasil-evaluasi", "/kendala", "/laporan"],
+  operator_desa: ["/dashboard", "/profil-website", "/penilaian", "/hasil-evaluasi", "/kendala"],
+  viewer: ["/dashboard", "/profilwebdesa", "/profil-website", "/hasil-evaluasi", "/laporan"],
+  checker: ["/profilwebdesa", "/profil-website"],
 };
 
 type AuthContextType = {
@@ -69,20 +79,39 @@ export function AuthWrapper({ children }: { children: React.ReactNode }) {
 
         if (mounted) {
           if (profile) {
+            let permissions: string[] = [];
+            try {
+              const { data: roleRes, error: roleErr } = await supabase
+                .from("roles_app")
+                .select("permissions")
+                .eq("nama_role", profile.role)
+                .maybeSingle();
+              
+              if (!roleErr && roleRes) {
+                permissions = roleRes.permissions || [];
+              } else {
+                permissions = FALLBACK_PERMISSIONS[profile.role] || [];
+              }
+            } catch (e) {
+              permissions = FALLBACK_PERMISSIONS[profile.role] || [];
+            }
+
             setUser({
               id: profile.id,
               nama: profile.nama,
               email: profile.email,
               role: profile.role,
               desa_id: profile.desa_id,
-              kecamatan_id: profile.kecamatan_id
+              kecamatan_id: profile.kecamatan_id,
+              permissions: Array.isArray(permissions) ? permissions : []
             });
           }
           setLoading(false);
 
           // Hanya redirect ke dashboard jika di halaman /login (bukan landing page /)
-          if (isLoginPage) {
-            router.replace("/dashboard");
+          if (pathname === "/login") {
+            router.replace(permissions[0] || "/dashboard");
+            return;
           }
         }
       } catch (err) {
@@ -131,6 +160,35 @@ export function AuthWrapper({ children }: { children: React.ReactNode }) {
   // Jika bukan halaman publik, dan user null, jangan render apapun (karena sedang redirect)
   if (!user) {
     return null;
+  }
+
+  // Cek otorisasi rute dinamis (selain dashboard)
+  const isDashboard = pathname === "/dashboard";
+  const hasPermission = isPublicRoute || isDashboard || user.permissions.some(p => pathname === p || pathname.startsWith(p + "/"));
+
+  if (!hasPermission) {
+    return (
+      <AuthContext.Provider value={{ user, loading, signOut }}>
+        <div style={{ display: "flex", minHeight: "100vh" }}>
+          <Sidebar />
+          <div className="main-content" style={{ flex: 1 }}>
+            <Header />
+            <main className="main-body" style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "70vh" }}>
+              <div className="card" style={{ padding: 40, maxWidth: 480, width: "100%", textAlign: "center" }}>
+                <Shield size={48} color="#ef4444" style={{ margin: "0 auto 16px" }} />
+                <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>Akses Ditolak</h2>
+                <p style={{ color: "var(--muted-foreground)", fontSize: 14, lineHeight: 1.5, marginBottom: 24 }}>
+                  Anda tidak memiliki hak akses untuk membuka modul <strong>{pathname}</strong>. Silakan hubungi Administrator untuk meminta akses.
+                </p>
+                <Link href={user.permissions[0] || "/dashboard"} className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2 rounded-lg transition-colors inline-flex items-center gap-2">
+                  Kembali ke Halaman Utama
+                </Link>
+              </div>
+            </main>
+          </div>
+        </div>
+      </AuthContext.Provider>
+    );
   }
 
   // Layout utama aplikasi (Backend)

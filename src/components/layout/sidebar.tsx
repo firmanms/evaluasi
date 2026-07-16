@@ -6,8 +6,9 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, Building2, MapPin, ClipboardCheck, ListChecks,
   BarChart3, Globe, AlertTriangle, FileText, Users, Settings,
-  ChevronDown, Activity, Award, Menu, X, Server
+  ChevronDown, Activity, Award, Menu, X, Server, Shield
 } from "lucide-react";
+import { useAuth } from "./auth-wrapper";
 
 const navigation = [
   {
@@ -25,6 +26,7 @@ const navigation = [
       { title: "Indikator", href: "/master/indikator", icon: ListChecks },
       { title: "Aspek & Bobot", href: "/master/aspek", icon: Settings },
       { title: "Periode Evaluasi", href: "/master/periode", icon: Activity },
+      { title: "Role & Hak Akses", href: "/master/role", icon: Shield },
     ],
   },
   {
@@ -55,6 +57,17 @@ const navigation = [
 export function Sidebar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { user } = useAuth();
+
+  // Filter menu items based on dynamic role permissions
+  const filteredNavigation = navigation.map((group) => {
+    const items = group.items.filter((item) => {
+      // Dashboard is always accessible
+      if (item.href === "/dashboard") return true;
+      return user?.permissions?.some((p) => item.href === p || item.href.startsWith(p + "/"));
+    });
+    return { ...group, items };
+  }).filter((group) => group.items.length > 0);
 
   return (
     <>
@@ -92,7 +105,7 @@ export function Sidebar() {
         </div>
 
         <nav className="sidebar-nav">
-          {navigation.map((group) => (
+          {filteredNavigation.map((group) => (
             <div key={group.section}>
               <div className="sidebar-section-title">{group.section}</div>
               {group.items.map((item) => {
@@ -126,16 +139,16 @@ export function Sidebar() {
             width: 32, height: 32, borderRadius: 8,
             background: "linear-gradient(135deg, #3b82f6, #8b5cf6)",
             display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 13, fontWeight: 700, color: "#fff"
+            fontSize: 12, fontWeight: 700, color: "#fff", textTransform: "uppercase"
           }}>
-            SA
+            {user?.nama ? user.nama.slice(0, 2) : "U"}
           </div>
           <div style={{ flex: 1, overflow: "hidden" }}>
-            <div style={{ fontSize: 13, fontWeight: 500, color: "#fff", whiteSpace: "nowrap", textOverflow: "ellipsis", overflow: "hidden" }}>
-              Super Admin
+            <div style={{ fontSize: 13, fontWeight: 500, color: "#fff", whiteSpace: "nowrap", textOverflow: "ellipsis", overflow: "hidden" }} title={user?.nama || ""}>
+              {user?.nama || "User"}
             </div>
-            <div style={{ fontSize: 11, color: "#64748b" }}>
-              Diskominfo
+            <div style={{ fontSize: 11, color: "#64748b", textTransform: "capitalize", whiteSpace: "nowrap", textOverflow: "ellipsis", overflow: "hidden" }}>
+              {user?.role ? user.role.replace(/_/g, " ") : "Guest"}
             </div>
           </div>
         </div>
