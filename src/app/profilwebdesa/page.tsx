@@ -42,6 +42,7 @@ export default function ProfilWebDesaDashboard() {
   const [filterServer, setFilterServer] = useState("");
   const [filterPic, setFilterPic] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
+  const [filterKec, setFilterKec] = useState("");
 
   useEffect(() => {
     fetchData();
@@ -65,6 +66,7 @@ export default function ProfilWebDesaDashboard() {
         url_website: w.desa?.url_website || "",
         nama_server: w.master_server?.nama_server || "Tidak Diketahui",
         lokasi_server: w.master_server?.lokasi_server || "",
+        kendala: w.kendala || "-",
       }));
 
       setData(flat);
@@ -85,8 +87,9 @@ export default function ProfilWebDesaDashboard() {
     const matchServer = filterServer ? d.nama_server === filterServer : true;
     const matchPic = filterPic ? d.pic_nama === filterPic : true;
     const matchStatus = filterStatus ? d.status_website === filterStatus : true;
+    const matchKec = filterKec ? d.nama_kecamatan === filterKec : true;
 
-    return matchSearch && matchVersi && matchJenisVersi && matchServer && matchPic && matchStatus;
+    return matchSearch && matchVersi && matchJenisVersi && matchServer && matchPic && matchStatus && matchKec;
   });
 
   // Extract unique lists for filters
@@ -95,6 +98,7 @@ export default function ProfilWebDesaDashboard() {
   const uniqueServers = Array.from(new Set(data.map(d => d.nama_server).filter(Boolean))).sort() as string[];
   const uniquePics = Array.from(new Set(data.map(d => d.pic_nama).filter(Boolean))).sort() as string[];
   const uniqueStatus = Array.from(new Set(data.map(d => d.status_website).filter(Boolean))).sort() as string[];
+  const uniqueKec = Array.from(new Set(data.map(d => d.nama_kecamatan).filter(Boolean))).sort() as string[];
 
   // Statistics
   const totalWebsite = filteredData.length;
@@ -131,6 +135,16 @@ export default function ProfilWebDesaDashboard() {
     .map(([name, value]) => ({ name, value }))
     .sort((a, b) => b.value - a.value);
 
+  // Chart 5: PIC Pendamping Bar Chart
+  const picCounts: Record<string, number> = {};
+  filteredData.forEach(d => {
+    const p = d.pic_nama || "Tidak Ada PIC";
+    picCounts[p] = (picCounts[p] || 0) + 1;
+  });
+  const picChartData = Object.entries(picCounts)
+    .map(([name, value]) => ({ name, value }))
+    .sort((a, b) => b.value - a.value);
+
   // Chart 4: Jenis Versi Pie Chart
   const jenisVersiCounts: Record<string, number> = {};
   filteredData.forEach(d => {
@@ -147,6 +161,7 @@ export default function ProfilWebDesaDashboard() {
     setFilterServer("");
     setFilterPic("");
     setFilterStatus("");
+    setFilterKec("");
   };
 
   if (loading) {
@@ -171,7 +186,7 @@ export default function ProfilWebDesaDashboard() {
   }
 
   return (
-    <div className="animate-fade-in" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+    <div className="backend-dashboard animate-fade-in" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
       {/* Page Header */}
       <div className="page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
         <div>
@@ -186,13 +201,13 @@ export default function ProfilWebDesaDashboard() {
           <h3 style={{ fontSize: 15, fontWeight: 600, display: "flex", alignItems: "center", gap: 8, margin: 0 }}>
             <Layers size={18} color="var(--primary)" /> Filter Data Dashboard
           </h3>
-          {(search || filterVersi || filterJenisVersi || filterServer || filterPic || filterStatus) && (
+          {(search || filterVersi || filterJenisVersi || filterServer || filterPic || filterStatus || filterKec) && (
             <button className="btn btn-ghost btn-sm" onClick={handleResetFilters} style={{ fontSize: 12, color: "#ef4444", border: "none", cursor: "pointer", background: "none" }}>
               Reset Filter
             </button>
           )}
         </div>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+        <div className="filter-row" style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
           <div className="search-box" style={{ flex: "1 1 200px", minWidth: 200 }}>
             <Search size={16} />
             <input
@@ -201,6 +216,17 @@ export default function ProfilWebDesaDashboard() {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
+          <select
+            className="form-select"
+            style={{ width: "auto", minWidth: 150, padding: "8px 12px" }}
+            value={filterKec}
+            onChange={(e) => setFilterKec(e.target.value)}
+          >
+            <option value="">Kecamatan (Semua)</option>
+            {uniqueKec.map((k) => (
+              <option key={k} value={k}>{k}</option>
+            ))}
+          </select>
           <select
             className="form-select"
             style={{ width: "auto", minWidth: 140, padding: "8px 12px" }}
@@ -298,7 +324,7 @@ export default function ProfilWebDesaDashboard() {
       {/* Charts Section */}
       <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
         {/* Row 1: Pie Charts (2 Kolom) */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(350px, 1fr))", gap: 20 }}>
+        <div className="pie-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 20 }}>
         {/* Chart 1: Status Website */}
         <div className="card" style={{ padding: 24, display: "flex", flexDirection: "column", gap: 16 }}>
           <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0 }}>Distribusi Status Website</h3>
@@ -365,7 +391,7 @@ export default function ProfilWebDesaDashboard() {
         <div className="card" style={{ padding: 24, display: "flex", flexDirection: "column", gap: 16 }}>
           <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0 }}>Versi OpenSID Terinstall</h3>
           {versiChartData.length > 0 ? (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "16px 24px", marginTop: 8 }}>
+            <div className="list-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "16px 24px", marginTop: 8 }}>
               {versiChartData.map((item, index) => {
                 const max = versiChartData[0]?.value || 1;
                 const percent = (item.value / max) * 100;
@@ -400,7 +426,7 @@ export default function ProfilWebDesaDashboard() {
         <div className="card" style={{ padding: 24, display: "flex", flexDirection: "column", gap: 16 }}>
           <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0 }}>Distribusi Server</h3>
           {serverChartData.length > 0 ? (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "16px 24px", marginTop: 8 }}>
+            <div className="list-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "16px 24px", marginTop: 8 }}>
               {serverChartData.map((item, index) => {
                 const max = serverChartData[0]?.value || 1;
                 const percent = (item.value / max) * 100;
@@ -418,6 +444,41 @@ export default function ProfilWebDesaDashboard() {
                           width: `${percent}%`, 
                           height: "100%", 
                           background: "#3b82f6", 
+                          borderRadius: 3 
+                        }} 
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <NoDataPlaceholder />
+          )}
+        </div>
+
+        {/* Chart 5: PIC Pendamping */}
+        <div className="card" style={{ padding: 24, display: "flex", flexDirection: "column", gap: 16 }}>
+          <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0 }}>Distribusi PIC Pendamping</h3>
+          {picChartData.length > 0 ? (
+            <div className="list-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "16px 24px", marginTop: 8 }}>
+              {picChartData.map((item, index) => {
+                const max = picChartData[0]?.value || 1;
+                const percent = (item.value / max) * 100;
+                return (
+                  <div key={index}>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                      <span style={{ fontWeight: 600, fontSize: 13, color: "var(--foreground)" }}>{item.name}</span>
+                      <span style={{ fontSize: 13, color: "var(--muted-foreground)" }}>
+                        <strong style={{ color: "var(--foreground)" }}>{item.value}</strong> desa
+                      </span>
+                    </div>
+                    <div style={{ width: "100%", height: 6, background: "rgba(16,185,129,0.1)", borderRadius: 3, overflow: "hidden" }}>
+                      <div 
+                        style={{ 
+                          width: `${percent}%`, 
+                          height: "100%", 
+                          background: "#10b981", 
                           borderRadius: 3 
                         }} 
                       />
@@ -448,6 +509,7 @@ export default function ProfilWebDesaDashboard() {
                 <th>Versi OpenSID</th>
                 <th>Jenis Versi</th>
                 <th>PIC Pendamping</th>
+                <th>Kendala</th>
                 <th>Status</th>
               </tr>
             </thead>
@@ -484,6 +546,9 @@ export default function ProfilWebDesaDashboard() {
                       <div style={{ fontWeight: 500 }}>{item.pic_nama || "-"}</div>
                       <div style={{ fontSize: 11, color: "var(--muted-foreground)" }}>{item.pic_no_tel || ""}</div>
                     </td>
+                    <td style={{ fontSize: 13, color: "var(--muted-foreground)", maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={item.kendala || ""}>
+                      {item.kendala || "-"}
+                    </td>
                     <td>
                       <span className="badge" style={{
                         background: isOnline ? "rgba(16,185,129,0.12)" : "rgba(239,68,68,0.12)",
@@ -498,7 +563,7 @@ export default function ProfilWebDesaDashboard() {
               })}
               {filteredData.length === 0 && (
                 <tr>
-                  <td colSpan={8} style={{ textAlign: "center", padding: 40, color: "var(--muted-foreground)" }}>
+                  <td colSpan={9} style={{ textAlign: "center", padding: 40, color: "var(--muted-foreground)" }}>
                     Tidak ada data profil website yang cocok dengan filter.
                   </td>
                 </tr>
@@ -507,6 +572,24 @@ export default function ProfilWebDesaDashboard() {
           </table>
         </div>
       </div>
+      <style dangerouslySetInnerHTML={{ __html: `
+        @media (max-width: 768px) {
+          .pie-grid {
+            grid-template-columns: 1fr !important;
+          }
+          .list-grid {
+            grid-template-columns: 1fr !important;
+          }
+          .filter-row {
+            flex-direction: column !important;
+            align-items: stretch !important;
+          }
+          .filter-row > * {
+            width: 100% !important;
+            min-width: 100% !important;
+          }
+        }
+      `}} />
     </div>
   );
 }

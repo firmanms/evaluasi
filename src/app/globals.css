@@ -329,11 +329,18 @@ body {
 }
 
 /* ========== TABLE ========== */
+.table-container {
+  overflow-x: auto;
+  width: 100%;
+  -webkit-overflow-scrolling: touch;
+}
+
 .data-table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
   font-size: 14px;
+  min-width: 1000px; /* Memastikan tabel memiliki ruang yang cukup dan tidak terpotong di HP */
 }
 
 .data-table thead th {
