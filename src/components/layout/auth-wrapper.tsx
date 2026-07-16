@@ -78,8 +78,8 @@ export function AuthWrapper({ children }: { children: React.ReactNode }) {
           .single();
 
         if (mounted) {
+          let permissions: string[] = [];
           if (profile) {
-            let permissions: string[] = [];
             try {
               const { data: roleRes, error: roleErr } = await supabase
                 .from("roles_app")
