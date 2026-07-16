@@ -26,11 +26,13 @@ export default function LandingPage() {
 
   async function fetchPublicData() {
     try {
-      // Get the active period
+      // Get the period configured to be shown on the landing page
       const { data: activePeriod } = await supabase
         .from("periode_evaluasi")
         .select("id, nama_periode")
-        .eq("status", "berjalan")
+        .eq("tampilkan_di_depan", true)
+        .order("tanggal_mulai", { ascending: false })
+        .limit(1)
         .maybeSingle();
 
       if (!activePeriod) {

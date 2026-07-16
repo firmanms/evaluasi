@@ -15,6 +15,11 @@ export default function ProfilWebsitePage() {
 
   const [search, setSearch] = useState("");
   const [filterKec, setFilterKec] = useState("");
+  const [filterServer, setFilterServer] = useState("");
+  const [filterVersi, setFilterVersi] = useState("");
+  const [filterJenisVersi, setFilterJenisVersi] = useState("");
+  const [filterPic, setFilterPic] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
 
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -349,11 +354,21 @@ export default function ProfilWebsitePage() {
   const filtered = data.filter((d) => {
     const matchSearch = d.nama_desa?.toLowerCase().includes(search.toLowerCase()) || d.operator?.toLowerCase().includes(search.toLowerCase());
     const matchKec = filterKec ? d.nama_kecamatan === filterKec : true;
-    return matchSearch && matchKec;
+    const matchServer = filterServer ? d.nama_server === filterServer : true;
+    const matchVersi = filterVersi ? d.versi === filterVersi : true;
+    const matchJenisVersi = filterJenisVersi ? d.jenis_versi === filterJenisVersi : true;
+    const matchPic = filterPic ? d.pic_nama === filterPic : true;
+    const matchStatus = filterStatus ? d.status_website === filterStatus : true;
+    return matchSearch && matchKec && matchServer && matchVersi && matchJenisVersi && matchPic && matchStatus;
   });
 
-  // Unique kecamatans for filter dropdown
+  // Unique options for filter dropdowns
   const uniqueKecamatans = Array.from(new Set(desaList.map(d => d.nama_kecamatan).filter(Boolean))).sort() as string[];
+  const uniqueServers = Array.from(new Set(data.map(d => d.nama_server).filter(Boolean))).sort() as string[];
+  const uniqueVersi = Array.from(new Set(data.map(d => d.versi).filter(Boolean))).sort() as string[];
+  const uniqueJenisVersi = Array.from(new Set(data.map(d => d.jenis_versi).filter(Boolean))).sort() as string[];
+  const uniquePic = Array.from(new Set(data.map(d => d.pic_nama).filter(Boolean))).sort() as string[];
+  const uniqueStatus = Array.from(new Set(data.map(d => d.status_website).filter(Boolean))).sort() as string[];
 
   // Available desas for new profiles (exclude those who already have one)
   const availableDesas = desaList.filter(d => !data.some(w => w.desa_id === d.id) || d.id === formData.desa_id);
@@ -385,8 +400,8 @@ export default function ProfilWebsitePage() {
         </div>
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
-        <div className="search-box" style={{ flex: "1 1 300px", maxWidth: 400 }}>
+      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 12, marginBottom: 20 }}>
+        <div className="search-box" style={{ flex: "1 1 200px", minWidth: 200 }}>
           <Search size={16} />
           <input
             placeholder="Cari desa atau operator..."
@@ -396,17 +411,72 @@ export default function ProfilWebsitePage() {
         </div>
         <select
           className="form-select"
-          style={{ width: "auto", minWidth: 180, padding: "8px 12px" }}
+          style={{ width: "auto", minWidth: 140, padding: "8px 12px" }}
           value={filterKec}
           onChange={(e) => setFilterKec(e.target.value)}
         >
-          <option value="">Semua Kecamatan</option>
+          <option value="">Semua Kec.</option>
           {uniqueKecamatans.map((kecName) => (
             <option key={kecName} value={kecName}>{kecName}</option>
           ))}
         </select>
+        <select
+          className="form-select"
+          style={{ width: "auto", minWidth: 120, padding: "8px 12px" }}
+          value={filterServer}
+          onChange={(e) => setFilterServer(e.target.value)}
+        >
+          <option value="">Semua Server</option>
+          {uniqueServers.map((s) => (
+            <option key={s} value={s}>{s}</option>
+          ))}
+        </select>
+        <select
+          className="form-select"
+          style={{ width: "auto", minWidth: 100, padding: "8px 12px" }}
+          value={filterVersi}
+          onChange={(e) => setFilterVersi(e.target.value)}
+        >
+          <option value="">Semua Versi</option>
+          {uniqueVersi.map((v) => (
+            <option key={v} value={v}>{v}</option>
+          ))}
+        </select>
+        <select
+          className="form-select"
+          style={{ width: "auto", minWidth: 120, padding: "8px 12px" }}
+          value={filterJenisVersi}
+          onChange={(e) => setFilterJenisVersi(e.target.value)}
+        >
+          <option value="">Jenis Versi</option>
+          {uniqueJenisVersi.map((jv) => (
+            <option key={jv} value={jv}>{jv}</option>
+          ))}
+        </select>
+        <select
+          className="form-select"
+          style={{ width: "auto", minWidth: 120, padding: "8px 12px" }}
+          value={filterPic}
+          onChange={(e) => setFilterPic(e.target.value)}
+        >
+          <option value="">Semua PIC</option>
+          {uniquePic.map((p) => (
+            <option key={p} value={p}>{p}</option>
+          ))}
+        </select>
+        <select
+          className="form-select"
+          style={{ width: "auto", minWidth: 110, padding: "8px 12px" }}
+          value={filterStatus}
+          onChange={(e) => setFilterStatus(e.target.value)}
+        >
+          <option value="">Semua Status</option>
+          {uniqueStatus.map((st) => (
+            <option key={st} value={st}>{st}</option>
+          ))}
+        </select>
         <span style={{ fontSize: 13, color: "var(--muted-foreground)" }}>
-          {filtered.length} profil tersedia
+          {filtered.length} profil
         </span>
       </div>
 

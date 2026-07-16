@@ -6,6 +6,8 @@ import {
   Trash2, RefreshCw, XCircle, Globe, Clock
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { cekDomain } from "./actions";
+
 
 export default function MonitoringPage() {
   const [data, setData] = useState<any[]>([]);
@@ -89,19 +91,34 @@ export default function MonitoringPage() {
         return;
       }
 
-      // 2. Generate random logs
-      const newLogs = desas.map((d) => {
-        // 90% chance to be up, 10% down
-        const isUp = Math.random() > 0.1;
-        return {
-          desa_id: d.id,
-          tanggal_cek: new Date().toISOString(),
-          http_status: isUp ? 200 : (Math.random() > 0.5 ? 500 : 404),
-          https_aktif: d.url_website?.includes("https") || Math.random() > 0.2,
-          response_time_ms: isUp ? Math.floor(Math.random() * 800) + 100 : 0,
-          keterangan: isUp ? "OK" : "Connection Timeout / Server Error"
-        };
-      });
+      // 2. Cek semua domain
+      const newLogs = await Promise.all(
+        desas.map(async (d) => {
+          const start = Date.now();
+          const statusResult = await cekDomain(d.url_website);
+          const responseTime = Date.now() - start;
+
+          const isUp = statusResult.startsWith("Aktif");
+          const isHttps = statusResult.includes("HTTPS");
+
+          let httpStatus = isUp ? 200 : 500;
+          if (statusResult.includes("(")) {
+            const match = statusResult.match(/\((\d+)\)/);
+            if (match) {
+              httpStatus = parseInt(match[1]);
+            }
+          }
+
+          return {
+            desa_id: d.id,
+            tanggal_cek: new Date().toISOString(),
+            http_status: httpStatus,
+            https_aktif: isHttps,
+            response_time_ms: isUp ? responseTime : 0,
+            keterangan: statusResult
+          };
+        })
+      );
 
       // 3. Insert logs
       const { error: insErr } = await supabase
@@ -113,7 +130,7 @@ export default function MonitoringPage() {
       await fetchLogs();
     } catch (err) {
       console.error(err);
-      alert("Gagal melakukan simulasi pengecekan.");
+      alert("Gagal melakukan pengecekan.");
     } finally {
       setSimulating(false);
     }
@@ -149,7 +166,7 @@ export default function MonitoringPage() {
           </button>
           <button className="btn btn-primary" onClick={simulatePing} disabled={loading || simulating}>
             {simulating ? <Loader2 className="animate-spin" size={16} /> : <RefreshCw size={16} />} 
-            Simulasi Cek Uptime
+            Jalankan Cek Uptime
           </button>
         </div>
       </div>
@@ -260,7 +277,7 @@ export default function MonitoringPage() {
                 {filtered.length === 0 && (
                   <tr>
                     <td colSpan={6} style={{ textAlign: "center", padding: 40, color: "var(--muted-foreground)" }}>
-                      Tidak ada log monitoring. Silakan jalankan simulasi.
+                      Tidak ada log monitoring. Silakan jalankan cek uptime.
                     </td>
                   </tr>
                 )}

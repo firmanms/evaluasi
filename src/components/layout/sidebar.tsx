@@ -30,6 +30,7 @@ const navigation = [
   {
     section: "EVALUASI",
     items: [
+      { title: "Dashboard Website", href: "/profilwebdesa", icon: BarChart3 },
       { title: "Profil Website Desa", href: "/profil-website", icon: Globe },
       { title: "Input Penilaian", href: "/penilaian", icon: ClipboardCheck },
       { title: "Hasil Evaluasi", href: "/hasil-evaluasi", icon: Award },

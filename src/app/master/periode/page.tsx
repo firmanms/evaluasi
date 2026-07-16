@@ -25,6 +25,7 @@ export default function PeriodePage() {
   const [tanggalMulai, setTanggalMulai] = useState("");
   const [tanggalSelesai, setTanggalSelesai] = useState("");
   const [status, setStatus] = useState("draft");
+  const [tampilkanDiDepan, setTampilkanDiDepan] = useState(true);
   
   const [formLoading, setFormLoading] = useState(false);
   const [error, setError] = useState("");
@@ -57,6 +58,7 @@ export default function PeriodePage() {
     setTanggalMulai("");
     setTanggalSelesai("");
     setStatus("draft");
+    setTampilkanDiDepan(true);
     setError("");
     setIsModalOpen(true);
   };
@@ -67,6 +69,7 @@ export default function PeriodePage() {
     setTanggalMulai(periode.tanggal_mulai);
     setTanggalSelesai(periode.tanggal_selesai);
     setStatus(periode.status);
+    setTampilkanDiDepan(periode.tampilkan_di_depan ?? true);
     setError("");
     setIsModalOpen(true);
   };
@@ -93,7 +96,8 @@ export default function PeriodePage() {
       nama_periode: namaPeriode.trim(),
       tanggal_mulai: tanggalMulai,
       tanggal_selesai: tanggalSelesai,
-      status
+      status,
+      tampilkan_di_depan: tampilkanDiDepan
     };
 
     try {
@@ -209,6 +213,11 @@ export default function PeriodePage() {
                     </div>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    {periode.tampilkan_di_depan && (
+                      <span className="badge" style={{ background: "rgba(59,130,246,0.08)", color: "#3b82f6", borderColor: "rgba(59,130,246,0.2)" }}>
+                        Tampil di Depan
+                      </span>
+                    )}
                     <span className="badge" style={{ background: cfg.bg, color: cfg.color, borderColor: `${cfg.color}30` }}>
                       <StatusIcon size={12} style={{ marginRight: 4 }} />
                       {cfg.label}
@@ -297,6 +306,20 @@ export default function PeriodePage() {
                 <option value="berjalan">Berjalan (Evaluasi Aktif)</option>
                 <option value="selesai">Selesai (Ditutup)</option>
               </select>
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
+              <input 
+                type="checkbox" 
+                id="tampilkanDiDepan"
+                checked={tampilkanDiDepan}
+                onChange={(e) => setTampilkanDiDepan(e.target.checked)}
+                disabled={formLoading}
+                style={{ width: 18, height: 18, cursor: "pointer" }}
+              />
+              <label htmlFor="tampilkanDiDepan" style={{ fontSize: 14, fontWeight: 500, cursor: "pointer", userSelect: "none" }}>
+                Tampilkan di Halaman Depan (Landing Page)
+              </label>
             </div>
           </div>
 

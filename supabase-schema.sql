@@ -110,6 +110,7 @@ create table periode_evaluasi (
     tanggal_mulai date not null,
     tanggal_selesai date not null,
     status status_periode_enum default 'draft'::status_periode_enum not null,
+    tampilkan_di_depan boolean default true not null,
     created_at timestamp with time zone default timezone('utc'::text, now()) not null,
     check (tanggal_selesai >= tanggal_mulai)
 );
